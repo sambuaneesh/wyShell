@@ -18,8 +18,8 @@ void handleInput(char *input)
                 warp(tokens);
             // else if (strcmp(tokens->argv[0], "peek") == 0)
             //     peek(tokens);
-            // else if (strcmp(tokens->argv[0], "proclore") == 0)
-            //     proclore(tokens);
+            else if (strcmp(tokens->argv[0], "proclore") == 0)
+                proclore(tokens);
             // else if (strcmp(tokens->argv[0], "seek") == 0)
             //     seek(tokens);
             else if (strcmp(tokens->argv[0], "pastevents") == 0)
