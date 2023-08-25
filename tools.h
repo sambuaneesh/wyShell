@@ -5,5 +5,6 @@
 #include "command.h"
 
 char *initializeGlobalHome();
+void warp(Command *cmd);
 
 #endif

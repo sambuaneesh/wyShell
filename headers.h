@@ -15,6 +15,7 @@
 #include <limits.h>
 
 extern char *global_home;
+extern char *prev_directory;
 
 typedef struct
 {
