@@ -1,5 +1,6 @@
 #include "headers.h"
 #include "tools.h"
+#include "handleInput.h"
 
 char *past_events[MAX_PAST_EVENTS];
 int num_past_events = 0;
@@ -55,7 +56,7 @@ void displayPastEvents()
 {
     for (int i = 0; i < num_past_events; i++)
     {
-        printf("%d: %s\n", i + 1, past_events[i]);
+        printf("%d: %s\n", num_past_events - i, past_events[i]);
     }
 }
 
@@ -77,6 +78,11 @@ void pastevents(Command *cmd)
         displayPastEvents();
     else if (strcmp(cmd->argv[1], "purge") == 0)
         purgePastEvents();
+    else if (strcmp(cmd->argv[1], "execute") == 0)
+    {
+        int index = atoi(cmd->argv[2]);
+        handleInput(past_events[num_past_events - index]);
+    }
     else
         fprintf(stderr, "pastevents: Invalid Usage\n");
 }
