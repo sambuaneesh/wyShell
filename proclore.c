@@ -15,6 +15,8 @@ void printProcessInfo(pid_t pid)
     char line[256];
     char process_status[10] = "Unknown";
     char executable_path[1024] = "Unknown";
+    int process_group = -1;
+    int virtual_memory = -1;
 
     while (fgets(line, sizeof(line), status_file) != NULL)
     {
@@ -26,16 +28,25 @@ void printProcessInfo(pid_t pid)
         {
             sscanf(line, "Name:\t%s", executable_path);
         }
+        else if (strncmp(line, "VmSize:", 7) == 0)
+        {
+            sscanf(line, "VmSize:\t%d", &virtual_memory);
+        }
+        else if (strncmp(line, "Pid:", 4) == 0)
+        {
+            sscanf(line, "Pid:\t%d", &process_group);
+        }
     }
 
     fclose(status_file);
 
-    printf("Process Information:\n");
-    printf("PID: %d\n", pid);
-    printf("Process Status: %s\n", process_status);
-    printf("Executable Path: %s\n", executable_path);
+    char status_sign = (strstr(process_status, "T") == NULL) ? '+' : ' ';
 
-    // You can include more information here, like Process Group and Virtual Memory.
+    printf("pid : %d\n", pid);
+    printf("process status : %s%c\n", process_status, status_sign);
+    printf("Process Group : %d\n", process_group);
+    printf("Virtual memory : %d\n", virtual_memory);
+    printf("executable path : %s\n", executable_path);
 }
 
 void proclore(Command *cmd)
