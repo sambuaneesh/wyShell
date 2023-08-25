@@ -1,6 +1,64 @@
 #include "headers.h"
 
-void prompt() {
-    // Do not hardcode the prmopt
-    printf("<Everything is a file> ");    
+char *getUsername()
+{
+    struct passwd *pw;
+    uid_t uid = getuid();
+    pw = getpwuid(uid);
+    if (!pw)
+    {
+        fprintf(stderr, "Cannot get username");
+        exit(EXIT_FAILURE);
+    }
+    return pw->pw_name;
+}
+
+void getHostname(char *hostname)
+{
+    if (gethostname(hostname, DEF_SIZE))
+    {
+        fprintf(stderr, "Cannot get hostname");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void getCurrentDirectory(char *cwd)
+{
+    if (!getcwd(cwd, DEF_SIZE))
+    {
+        fprintf(stderr, "Cannot get current working directory");
+    }
+}
+
+void printPrompt(const char *username, const char *hostname, const char *cwd)
+{
+    // if cwd is @home
+    if (strcmp(cwd, global_home) == 0)
+    {
+        printf("<%s@%s:~> ", username, hostname);
+    }
+    // if cwd is @home/..
+    else if (strstr(cwd, global_home) == cwd)
+    {
+        printf("<%s@%s:~%s> ", username, hostname, cwd + strlen(global_home));
+    }
+    // if cwd is not @home
+    else
+    {
+        printf("<%s@%s:%s> ", username, hostname, cwd);
+    }
+}
+
+void prompt()
+{
+    char cwd[DEF_SIZE];
+
+    getCurrentDirectory(cwd);
+
+    char *username = getUsername();
+
+    char hostname[DEF_SIZE];
+    getHostname(hostname);
+
+    printPrompt(username, hostname, cwd);
 }
