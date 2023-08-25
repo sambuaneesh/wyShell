@@ -1,15 +1,15 @@
 #include "headers.h"
 
-Command *parseCommand(char *command)
+Command *parseCommand(char *command, const char *delimiter)
 {
     int numTokens = 0;
-    char *tokens[MAX_INPUT_LENGTH]; // Assuming you won't have too many tokens
-    char *token = strtok(command, " \t\n");
+    char *tokens[MAX_INPUT_LENGTH];
+    char *token = strtok(command, delimiter);
     while (token != NULL)
     {
         tokens[numTokens] = strdup(token);
         numTokens++;
-        token = strtok(NULL, " \t\n");
+        token = strtok(NULL, delimiter);
     }
 
     Command *cmd = malloc(sizeof(Command));
