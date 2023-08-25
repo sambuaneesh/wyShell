@@ -26,7 +26,7 @@ void handleInput(char *input)
             //     pastevents(tokens);
             else
             {
-                printf("Invalid Command\n");
+                executeCommand(tokens->argv);
             }
 
             freeCommand(tokens);

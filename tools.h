@@ -6,5 +6,6 @@
 
 char *initializeGlobalHome();
 void warp(Command *cmd);
+void executeCommand(char *tokens[]);
 
 #endif
