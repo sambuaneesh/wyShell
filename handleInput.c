@@ -22,8 +22,8 @@ void handleInput(char *input)
             //     proclore(tokens);
             // else if (strcmp(tokens->argv[0], "seek") == 0)
             //     seek(tokens);
-            // else if (strcmp(tokens->argv[0], "pastevents") == 0)
-            //     pastevents(tokens);
+            else if (strcmp(tokens->argv[0], "pastevents") == 0)
+                pastevents(tokens);
             else
             {
                 executeCommand(tokens->argv);

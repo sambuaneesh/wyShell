@@ -3,6 +3,7 @@
 
 #include "prompt.h"
 #include "command.h"
+#include "pastevents.h"
 
 char *initializeGlobalHome();
 void warp(Command *cmd);

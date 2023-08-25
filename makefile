@@ -1,13 +1,8 @@
 main:
-	gcc -o whysh -g \
-    main.c \
-    prompt.c \
-    initHome.c \
-    command.c \
-    handleInput.c \
-    warp.c \
-    executeCommand.c
+	gcc -o whysh -g *.c
 
+run:
+	gcc -o whysh -g *.c && ./whysh
 
 clean:
-	rm *.out
+	rm whysh pastevents.txt

@@ -4,6 +4,8 @@
 // default buffer size
 #define DEF_SIZE 1024
 #define MAX_INPUT_LENGTH 4096
+#define MAX_PAST_EVENTS 15
+#define PAST_EVENTS_FILE "pastevents.txt"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,6 +18,9 @@
 
 extern char *global_home;
 extern char *prev_directory;
+
+extern char *past_events[MAX_PAST_EVENTS];
+extern int num_past_events;
 
 typedef struct
 {
