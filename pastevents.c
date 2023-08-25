@@ -35,9 +35,9 @@ void savePastEvents()
 
 void addToPastEvents(const char *command)
 {
-    if (strstr(command, "pastevents") == command)
-        return;
-    if (strcmp(command, past_events[num_past_events - 1]) == 0)
+    // if (strstr(command, "pastevents") == command)
+    //     return;
+    if (num_past_events != 0 && (strcmp(command, past_events[num_past_events - 1]) == 0))
         return;
     if (num_past_events == MAX_PAST_EVENTS)
     {
@@ -54,6 +54,10 @@ void addToPastEvents(const char *command)
 
 void displayPastEvents()
 {
+    // free the last command if pastevents is used
+    // when display is used, that means ofcourse pastevents is used
+    free(past_events[--num_past_events]);
+    savePastEvents();
     for (int i = 0; i < num_past_events; i++)
     {
         printf("%d: %s\n", num_past_events - i, past_events[i]);
