@@ -16,5 +16,17 @@
 
 extern char *global_home;
 
+typedef struct
+{
+    char **argv;
+    int argc;
+} Command;
+
+typedef struct
+{
+    Command **commands;
+    int numCommands;
+} Commands;
+
 #include "prompt.h"
 #endif
