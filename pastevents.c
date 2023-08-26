@@ -60,7 +60,7 @@ void displayPastEvents()
     savePastEvents();
     for (int i = 0; i < num_past_events; i++)
     {
-        printf("%d: %s\n", num_past_events - i, past_events[i]);
+        printf("%d:\t\b\b\b\b%s\n", num_past_events - i, past_events[i]);
     }
 }
 
