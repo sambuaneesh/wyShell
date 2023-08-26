@@ -10,5 +10,6 @@ void warp(Command *cmd);
 void executeCommand(char *tokens[]);
 void proclore(Command *cmd);
 void peek(Command *cmd);
+void printWyshArt();
 
 #endif

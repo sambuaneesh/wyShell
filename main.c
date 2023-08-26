@@ -9,7 +9,7 @@ int main()
 {
     global_home = initializeGlobalHome();
     loadPastEvents();
-
+    printWyshArt();
     while (1)
     {
         prompt();

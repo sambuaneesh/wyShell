@@ -1,5 +1,5 @@
 main:
-	@gcc -w -o whysh -g main.c \
+	@gcc -w -o wysh -g main.c \
 	command.c \
 	executeCommand.c \
 	handleInput.c \
@@ -11,7 +11,7 @@ main:
 	warp.c \
 
 run:
-	@gcc -o whysh -g *.c && ./whysh
+	@gcc -o wysh -g *.c && ./wysh
 
 clean:
-	rm whysh pastevents.txt
+	rm wysh pastevents.txt
