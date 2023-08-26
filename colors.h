@@ -8,5 +8,6 @@
 #define BOLD_MAGENTA_COLOR "\033[1;35m"
 #define BOLD_YELLOW_COLOR "\033[1;33m"
 #define BOLD_GREY_COLOR "\033[1;90m"
+#define DARK_GREY_COLOR "\x1B[38;5;240m"
 
 #endif

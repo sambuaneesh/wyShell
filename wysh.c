@@ -18,5 +18,5 @@ void printWyshArt()
            "    '---\"          \\  ' ;                      \n"
            "                    `--`                        \n");
 
-    printf(BOLD_YELLOW_COLOR "Welcome to wyShe!!\n" RESET_COLOR);
+    printf(BOLD_YELLOW_COLOR "Welcome to wyShe!l\n" RESET_COLOR);
 }

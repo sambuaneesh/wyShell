@@ -13,7 +13,7 @@ Flags :
 -e : This flag is effective only when a single file or a single directory with the name is found. If only one file (and no directories) is found, then print it’s output. If only one directory (and no files) is found, then change current working directory to it. Otherwise, the flag has no effect. This flag should work with -d and -f flags. If -e flag is enabled but the directory does not have access permission (execute) or file does not have read permission, then output “Missing permissions for task!”*/
 
 // Function to search for files/directories
-void search(const char *target, const char *directory, int isDirFlag, int isFileFlag, int isExecuteFlag)
+void search(const char *target, const char *directory, int isDirFlag, int isFileFlag, int isExecuteFlag, int topLevelSearch)
 {
     DIR *dir = opendir(directory);
     if (dir == NULL)
@@ -43,7 +43,7 @@ void search(const char *target, const char *directory, int isDirFlag, int isFile
 
         if (S_ISDIR(entryStat.st_mode) && (isDirFlag || (!isFileFlag && !isDirFlag)))
         {
-            if (strstr(entry->d_name, target) != NULL)
+            if (strcmp(entry->d_name, target) == 0 || strstr(entry->d_name, target) != NULL)
             {
                 matchFound = 1; // Mark match found
                 printf("%s/%s\n", directory, entry->d_name);
@@ -63,7 +63,7 @@ void search(const char *target, const char *directory, int isDirFlag, int isFile
                     }
                     printf("Changed current working directory to %s\n", entryPath);
                 }
-                search(target, entryPath, isDirFlag, isFileFlag, isExecuteFlag);
+                search(target, entryPath, isDirFlag, isFileFlag, isExecuteFlag, 0); // Pass 0 for topLevelSearch
             }
         }
         else if (S_ISREG(entryStat.st_mode) && (isFileFlag || (!isFileFlag && !isDirFlag)))
@@ -101,7 +101,7 @@ void search(const char *target, const char *directory, int isDirFlag, int isFile
     }
     closedir(dir);
 
-    if (!matchFound)
+    if (topLevelSearch && !matchFound && isDirFlag)
     {
         printf("No match found!\n");
     }
@@ -151,5 +151,5 @@ void seek(Command *cmd)
         }
     }
 
-    search(target, directory, isDirFlag, isFileFlag, isExecuteFlag);
+    search(target, directory, isDirFlag, isFileFlag, isExecuteFlag, 1); // Pass 1 for topLevelSearch
 }
