@@ -56,10 +56,14 @@ void warpHelper(char *directory)
 
 void warp(Command *cmd)
 {
-    if (cmd->argc <= 1)
+    if (cmd->argc == 0)
     {
         fprintf(stderr, "warp: missing argument\n");
         return;
+    }
+    else if (cmd->argc == 1)
+    {
+        warpHelper("~");
     }
 
     for (int i = 1; i < cmd->argc; i++)
