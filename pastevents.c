@@ -85,7 +85,11 @@ void pastevents(Command *cmd)
     else if (strcmp(cmd->argv[1], "execute") == 0)
     {
         int index = atoi(cmd->argv[2]);
-        handleInput(past_events[num_past_events - index]);
+        char *temp = past_events[num_past_events - index - 1];
+        handleInput(temp);
+        free(past_events[--num_past_events]);
+        savePastEvents();
+        addToPastEvents(temp);
     }
     else
         fprintf(stderr, "pastevents: Invalid Usage\n");
