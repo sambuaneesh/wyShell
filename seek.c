@@ -1,18 +1,5 @@
 #include "headers.h"
-#include <errno.h>
 
-/*Specification : seek
-‘seek’ command looks for a file/directory in the specified target directory (or current if no directory is specified). It returns a list of relative paths (from target directory) of all matching files/directories (files in green and directories in blue) separated with a newline character.
-
-Note that by files, the text here refers to non-directory files.
-
-Flags :
-
--d : Only look for directories (ignore files even if name matches)
--f : Only look for files (ignore directories even if name matches)
--e : This flag is effective only when a single file or a single directory with the name is found. If only one file (and no directories) is found, then print it’s output. If only one directory (and no files) is found, then change current working directory to it. Otherwise, the flag has no effect. This flag should work with -d and -f flags. If -e flag is enabled but the directory does not have access permission (execute) or file does not have read permission, then output “Missing permissions for task!”*/
-
-// Function to search for files/directories
 void search(const char *target, const char *directory, int isDirFlag, int isFileFlag, int isExecuteFlag, int topLevelSearch)
 {
     DIR *dir = opendir(directory);
@@ -22,7 +9,7 @@ void search(const char *target, const char *directory, int isDirFlag, int isFile
         return;
     }
 
-    int matchFound = 0; // Flag to track if any matches were found
+    int matchFound = 0;
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL)
     {
@@ -31,7 +18,7 @@ void search(const char *target, const char *directory, int isDirFlag, int isFile
             continue;
         }
 
-        char entryPath[PATH_MAX];
+        char entryPath[DEF_SIZE];
         snprintf(entryPath, sizeof(entryPath), "%s/%s", directory, entry->d_name);
 
         struct stat entryStat;
@@ -45,7 +32,7 @@ void search(const char *target, const char *directory, int isDirFlag, int isFile
         {
             if (strcmp(entry->d_name, target) == 0 || strstr(entry->d_name, target) != NULL)
             {
-                matchFound = 1; // Mark match found
+                matchFound = 1;
                 printf("%s/%s\n", directory, entry->d_name);
                 if (isExecuteFlag)
                 {
@@ -63,7 +50,7 @@ void search(const char *target, const char *directory, int isDirFlag, int isFile
                     }
                     printf("Changed current working directory to %s\n", entryPath);
                 }
-                search(target, entryPath, isDirFlag, isFileFlag, isExecuteFlag, 0); // Pass 0 for topLevelSearch
+                search(target, entryPath, isDirFlag, isFileFlag, isExecuteFlag, 0);
             }
         }
         else if (S_ISREG(entryStat.st_mode) && (isFileFlag || (!isFileFlag && !isDirFlag)))
@@ -88,10 +75,12 @@ void search(const char *target, const char *directory, int isDirFlag, int isFile
                     else
                     {
                         char buffer[1024];
+                        printf(DARK_GREY_COLOR);
                         while (fgets(buffer, sizeof(buffer), file) != NULL)
                         {
                             printf("%s", buffer);
                         }
+                        printf(RESET_COLOR);
                         printf("\n");
                         fclose(file);
                     }
@@ -122,18 +111,35 @@ void seek(Command *cmd)
     char *target = NULL;
     char *directory = "."; // Initialize with current directory
 
+    int hasInvalidFlags = 0;
+
     for (int i = 1; i < cmd->argc; i++)
     {
         if (strcmp(cmd->argv[i], "-d") == 0)
         {
+            if (isFileFlag || isExecuteFlag)
+            {
+                hasInvalidFlags = 1;
+                break;
+            }
             isDirFlag = 1;
         }
         else if (strcmp(cmd->argv[i], "-f") == 0)
         {
+            if (isDirFlag || isExecuteFlag)
+            {
+                hasInvalidFlags = 1;
+                break;
+            }
             isFileFlag = 1;
         }
         else if (strcmp(cmd->argv[i], "-e") == 0)
         {
+            if (isDirFlag || isFileFlag)
+            {
+                hasInvalidFlags = 1;
+                break;
+            }
             isExecuteFlag = 1;
         }
         else if (target == NULL)
@@ -149,6 +155,12 @@ void seek(Command *cmd)
             printf("Invalid usage!\n");
             return;
         }
+    }
+
+    if (hasInvalidFlags)
+    {
+        printf("Invalid flags!\n");
+        return;
     }
 
     search(target, directory, isDirFlag, isFileFlag, isExecuteFlag, 1); // Pass 1 for topLevelSearch

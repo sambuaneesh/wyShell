@@ -1,5 +1,5 @@
 main:
-	@gcc -w -o wysh -g main.c \
+	@gcc -w -g main.c \
 	command.c \
 	executeCommand.c \
 	handleInput.c \
@@ -9,9 +9,11 @@ main:
 	proclore.c \
 	prompt.c \
 	warp.c \
+	seek.c \
+	wysh.c
 
 run:
 	@gcc -o wysh -g *.c && ./wysh
 
 clean:
-	rm wysh pastevents.txt
+	rm wysh pastevents.txt a.out
