@@ -32,21 +32,25 @@ void getCurrentDirectory(char *cwd)
 
 void printPrompt(const char *username, const char *hostname, const char *cwd)
 {
+    printf(BOLD_CYAN_COLOR);
+
     // if cwd is @home
     if (strcmp(cwd, global_home) == 0)
     {
-        printf("<%s@%s:~> ", username, hostname);
+        printf("<%s%s@%s%s:~%s", BOLD_YELLOW_COLOR, username, BOLD_MAGENTA_COLOR, hostname, RESET_COLOR);
     }
     // if cwd is @home/..
     else if (strstr(cwd, global_home) == cwd)
     {
-        printf("<%s@%s:~%s> ", username, hostname, cwd + strlen(global_home));
+        printf("<%s%s@%s%s:~%s%s", BOLD_YELLOW_COLOR, username, BOLD_MAGENTA_COLOR, hostname, BOLD_GREY_COLOR, cwd + strlen(global_home));
     }
     // if cwd is not @home
     else
     {
-        printf("<%s@%s:%s> ", username, hostname, cwd);
+        printf("<%s%s@%s%s:%s%s", BOLD_YELLOW_COLOR, username, BOLD_MAGENTA_COLOR, hostname, BOLD_GREY_COLOR, cwd);
     }
+
+    printf(BOLD_CYAN_COLOR ">%s ", RESET_COLOR);
 }
 
 void prompt()

@@ -218,17 +218,11 @@ void peek(Command *cmd)
         }
 
         if (showDetails)
-        {
             listDetailedDirectory(current_directory);
-        }
         else if (showAll)
-        {
             listDirectoryHidden(current_directory);
-        }
         else
-        {
             listDirectory(current_directory);
-        }
     }
     else
     {
@@ -241,16 +235,10 @@ void peek(Command *cmd)
         }
 
         if (showDetails)
-        {
             listDetailedDirectory(directory);
-        }
         else if (showAll)
-        {
             listDirectoryHidden(directory);
-        }
         else
-        {
             listDirectory(directory);
-        }
     }
 }
