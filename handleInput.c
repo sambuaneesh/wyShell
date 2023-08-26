@@ -16,8 +16,8 @@ void handleInput(char *input)
             Command *tokens = parseCommand(singleCommand->argv[subCmdIndex], " \t");
             if (strcmp(tokens->argv[0], "warp") == 0)
                 warp(tokens);
-            // else if (strcmp(tokens->argv[0], "peek") == 0)
-            //     peek(tokens);
+            else if (strcmp(tokens->argv[0], "peek") == 0)
+                peek(tokens);
             else if (strcmp(tokens->argv[0], "proclore") == 0)
                 proclore(tokens);
             // else if (strcmp(tokens->argv[0], "seek") == 0)
