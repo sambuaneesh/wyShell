@@ -22,6 +22,7 @@ void search(const char *target, const char *directory, int isDirFlag, int isFile
         return;
     }
 
+    int matchFound = 0; // Flag to track if any matches were found
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL)
     {
@@ -44,17 +45,20 @@ void search(const char *target, const char *directory, int isDirFlag, int isFile
         {
             if (strstr(entry->d_name, target) != NULL)
             {
+                matchFound = 1; // Mark match found
                 printf("%s/%s\n", directory, entry->d_name);
                 if (isExecuteFlag)
                 {
                     if (access(entryPath, X_OK) != 0)
                     {
                         perror("Missing permissions for task!");
+                        closedir(dir);
                         return;
                     }
                     if (chdir(entryPath) == -1)
                     {
                         perror("chdir");
+                        closedir(dir);
                         return;
                     }
                     printf("Changed current working directory to %s\n", entryPath);
@@ -66,12 +70,14 @@ void search(const char *target, const char *directory, int isDirFlag, int isFile
         {
             if (strstr(entry->d_name, target) != NULL)
             {
+                matchFound = 1; // Mark match found
                 printf("%s/%s\n", directory, entry->d_name);
                 if (isExecuteFlag)
                 {
                     if (access(entryPath, R_OK) != 0)
                     {
                         perror("Missing permissions for task!");
+                        closedir(dir);
                         return;
                     }
                     FILE *file = fopen(entryPath, "r");
@@ -86,6 +92,7 @@ void search(const char *target, const char *directory, int isDirFlag, int isFile
                         {
                             printf("%s", buffer);
                         }
+                        printf("\n");
                         fclose(file);
                     }
                 }
@@ -93,6 +100,11 @@ void search(const char *target, const char *directory, int isDirFlag, int isFile
         }
     }
     closedir(dir);
+
+    if (!matchFound)
+    {
+        printf("No match found!\n");
+    }
 }
 
 // Main seek function
@@ -100,7 +112,7 @@ void seek(Command *cmd)
 {
     if (cmd->argc < 2)
     {
-        printf("Usage: seek [-d] [-f] [-e] target [directory]\n");
+        printf("Usage: seek <flags> <search> <target_directory>\n");
         return;
     }
 
@@ -108,12 +120,7 @@ void seek(Command *cmd)
     int isFileFlag = 0;
     int isExecuteFlag = 0;
     char *target = NULL;
-    char *directory = getcwd(NULL, 0);
-    if (directory == NULL)
-    {
-        perror("getcwd");
-        return;
-    }
+    char *directory = "."; // Initialize with current directory
 
     for (int i = 1; i < cmd->argc; i++)
     {
@@ -145,5 +152,4 @@ void seek(Command *cmd)
     }
 
     search(target, directory, isDirFlag, isFileFlag, isExecuteFlag);
-    free(directory); // Free dynamically allocated memory
 }
