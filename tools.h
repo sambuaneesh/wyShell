@@ -7,7 +7,7 @@
 
 char *initializeGlobalHome();
 void warp(Command *cmd);
-void executeCommand(char *tokens[]);
+void executeCommand(char *command, int isBackground);
 void proclore(Command *cmd);
 void peek(Command *cmd);
 void printWyshArt();

@@ -30,7 +30,7 @@ void getCurrentDirectory(char *cwd)
     }
 }
 
-void printPrompt(const char *username, const char *hostname, const char *cwd)
+void printPrompt(const char *username, const char *hostname, const char *cwd, int backgroundProcessStatus)
 {
     printf(BOLD_CYAN_COLOR);
 
@@ -50,10 +50,16 @@ void printPrompt(const char *username, const char *hostname, const char *cwd)
         printf("<%s%s@%s%s:%s%s", BOLD_YELLOW_COLOR, username, BOLD_MAGENTA_COLOR, hostname, BOLD_GREY_COLOR, cwd);
     }
 
+    // Print background process status and time taken
+    if (backgroundProcessStatus > 0)
+    {
+        printf(BOLD_CYAN_COLOR " (Process %d)", backgroundProcessStatus);
+    }
+
     printf(BOLD_CYAN_COLOR ">%s ", RESET_COLOR);
 }
 
-void prompt()
+void prompt(int backgroundProcessStatus)
 {
     char cwd[DEF_SIZE];
 
@@ -64,5 +70,5 @@ void prompt()
     char hostname[DEF_SIZE];
     getHostname(hostname);
 
-    printPrompt(username, hostname, cwd);
+    printPrompt(username, hostname, cwd, backgroundProcessStatus);
 }

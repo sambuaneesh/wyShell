@@ -1,40 +1,34 @@
 #include "headers.h"
 #include "tools.h"
-
 void handleInput(char *input)
 {
     Command *commandList = parseCommand(input, ";");
 
     for (int cmdIndex = 0; cmdIndex < commandList->argc; cmdIndex++)
     {
-        Command *singleCommand = parseCommand(commandList->argv[cmdIndex], "&");
+        char *command = commandList->argv[cmdIndex];
+        char *ampersand = strchr(command, '&');
 
-        // process commands seperated by &
-        for (int subCmdIndex = 0; subCmdIndex < singleCommand->argc; subCmdIndex++)
+        if (ampersand != NULL)
         {
-            // tokenizing current command
-            Command *tokens = parseCommand(singleCommand->argv[subCmdIndex], " \t");
-            if (strcmp(tokens->argv[0], "warp") == 0)
-                warp(tokens);
-            else if (strcmp(tokens->argv[0], "peek") == 0)
-                peek(tokens);
-            else if (strcmp(tokens->argv[0], "proclore") == 0)
-                proclore(tokens);
-            else if (strcmp(tokens->argv[0], "wysh") == 0 || strcmp(tokens->argv[0], "greet") == 0)
-                printWyshArt();
-            else if (strcmp(tokens->argv[0], "seek") == 0)
-                seek(tokens);
-            else if (strcmp(tokens->argv[0], "pastevents") == 0)
-                pastevents(tokens);
-            else
-            {
-                executeCommand(tokens->argv);
-            }
+            // Split the command at the first "&"
+            *ampersand = '\0';
+            char *nextCommand = ampersand + 1;
 
-            freeCommand(tokens);
+            if (*nextCommand == ' ')
+                nextCommand++;
+
+            // Execute the first part as a background process
+            executeCommand(command, 1);
+
+            // Handle the remaining part recursively
+            handleInput(nextCommand);
         }
-
-        freeCommand(singleCommand);
+        else
+        {
+            // No "&" found, execute the command as foreground
+            executeCommand(command, 0);
+        }
     }
 
     freeCommand(commandList);
