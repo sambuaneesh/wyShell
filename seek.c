@@ -109,7 +109,7 @@ void seek(Command *cmd)
     int isFileFlag = 0;
     int isExecuteFlag = 0;
     char *target = NULL;
-    char *directory = "."; // Initialize with current directory
+    char *directory = "."; // Initialize with the current directory
 
     int hasInvalidFlags = 0;
 
@@ -126,7 +126,7 @@ void seek(Command *cmd)
         }
         else if (strcmp(cmd->argv[i], "-f") == 0)
         {
-            if (isDirFlag || isExecuteFlag)
+            if (isDirFlag)
             {
                 hasInvalidFlags = 1;
                 break;
@@ -135,7 +135,7 @@ void seek(Command *cmd)
         }
         else if (strcmp(cmd->argv[i], "-e") == 0)
         {
-            if (isDirFlag || isFileFlag)
+            if ((isDirFlag && isFileFlag) || isExecuteFlag)
             {
                 hasInvalidFlags = 1;
                 break;
@@ -161,6 +161,12 @@ void seek(Command *cmd)
     {
         printf("Invalid flags!\n");
         return;
+    }
+
+// Now, you can check for both flag combinations for displaying file contents
+    if ((isFileFlag && isExecuteFlag) || (isExecuteFlag && isFileFlag))
+    {
+        search(target, directory, isDirFlag, isFileFlag, isExecuteFlag, 1); // Pass 1 for topLevelSearch
     }
 
     search(target, directory, isDirFlag, isFileFlag, isExecuteFlag, 1); // Pass 1 for topLevelSearch
