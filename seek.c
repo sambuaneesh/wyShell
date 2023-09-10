@@ -2,6 +2,14 @@
 
 void search(const char *target, const char *directory, int isDirFlag, int isFileFlag, int isExecuteFlag, int topLevelSearch)
 {
+
+    if (directory[0] == '~')
+    {
+        char expanded_path[DEF_SIZE];
+        snprintf(expanded_path, sizeof(expanded_path), "%s%s", global_home, directory + 1);
+        directory = expanded_path;
+    }
+
     DIR *dir = opendir(directory);
     if (dir == NULL)
     {
@@ -117,6 +125,10 @@ void seek(Command *cmd)
     {
         if (strcmp(cmd->argv[i], "-d") == 0)
         {
+            if (cmd->argc == 2) {
+                hasInvalidFlags = 1;
+                break;
+            }
             if (isFileFlag || isExecuteFlag)
             {
                 hasInvalidFlags = 1;
@@ -135,7 +147,7 @@ void seek(Command *cmd)
         }
         else if (strcmp(cmd->argv[i], "-e") == 0)
         {
-            if ((isDirFlag && isFileFlag) || isExecuteFlag)
+            if ((isFileFlag) || isExecuteFlag)
             {
                 hasInvalidFlags = 1;
                 break;
@@ -163,11 +175,10 @@ void seek(Command *cmd)
         return;
     }
 
-// Now, you can check for both flag combinations for displaying file contents
     if ((isFileFlag && isExecuteFlag) || (isExecuteFlag && isFileFlag))
     {
-        search(target, directory, isDirFlag, isFileFlag, isExecuteFlag, 1); // Pass 1 for topLevelSearch
+        search(target, directory, isDirFlag, isFileFlag, isExecuteFlag, 1);
     }
 
-    search(target, directory, isDirFlag, isFileFlag, isExecuteFlag, 1); // Pass 1 for topLevelSearch
+    search(target, directory, isDirFlag, isFileFlag, isExecuteFlag, 1);
 }
