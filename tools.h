@@ -13,4 +13,8 @@ void peek(Command *cmd);
 void printWyshArt();
 void seek(Command *cmd);
 
+void trim(char *str);
+
+int pipeCommand(char *command);
+
 #endif

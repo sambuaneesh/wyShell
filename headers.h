@@ -7,6 +7,7 @@
 #define MAX_PAST_EVENTS 16
 #define MAX_PATH_LENGTH 4096
 #define PAST_EVENTS_FILE "pastevents.txt"
+#define MAX_COMMANDS 10
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,6 +23,8 @@
 #include <grp.h>
 #include <time.h>
 #include <errno.h>
+#include <ctype.h>
+
 
 #include "colors.h"
 

@@ -3,6 +3,8 @@
 
 void executeCommand(char *command, int isBackground)
 {
+    if (pipeCommand(command))
+        return;
     Command *cmd = parseCommand(command, " \t");
     if (strcmp(cmd->argv[0], "warp") == 0)
     {
