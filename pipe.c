@@ -5,6 +5,12 @@ int pipeCommand(char *cmd) {
     char *commands[MAX_COMMANDS]; // Array to store individual commands
     int num_commands = 0;
 
+//    return error if there is nothing to the left or to the right of a pipe
+    if (cmd[0] == '|' || cmd[strlen(cmd) - 1] == '|') {
+        fprintf(stderr, "ERROR: Invalid use of pipe\n");
+        return 1;
+    }
+
     // Tokenize the input command by pipe symbol '|'
     char *token = strtok(cmd, "|");
     while (token != NULL) {
