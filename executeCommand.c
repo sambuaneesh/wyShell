@@ -3,6 +3,10 @@
 
 void executeCommand(char *command, int isBackground)
 {
+    if (strchr(command, '<') != NULL || strchr(command, '>')) {
+        ioRedirection(command);
+        return;
+    }
     if (pipeCommand(command))
         return;
     Command *cmd = parseCommand(command, " \t");
