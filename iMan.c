@@ -2,73 +2,153 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/socket.h>
 #include <netdb.h>
-#include <arpa/inet.h>
 
-#define BUFFER_SIZE 1024
+// Function to send an HTTP GET request and retrieve the response
+char *httpGet(const char *url) {
+    char *response = NULL;
+    int response_size = 1; // Start with space for null-terminator
 
-void error(const char *msg) {
-    perror(msg);
-    exit(1);
-}
-
-void fetchManPage(const char *command_name) {
-    struct hostent *server;
-    struct sockaddr_in server_addr;
-    int sockfd, portno;
-    char buffer[BUFFER_SIZE];
-
-    // DNS resolution for man.he.net
-    server = gethostbyname("man.he.net");
-    if (server == NULL) {
-        fprintf(stderr, "ERROR: Could not resolve host\n");
-        exit(1);
+    // Parse the URL to extract host and path
+    char host[256];
+    char path[256];
+    if (sscanf(url, "http://%255[^/]/%255[^\n]", host, path) != 2) {
+        fprintf(stderr, "Invalid URL format\n");
+        return NULL;
     }
 
-    // Open a TCP socket
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0) {
-        error("ERROR opening socket");
+    // Resolve host to IP address
+    struct addrinfo hints, *res;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    if (getaddrinfo(host, "http", &hints, &res) != 0) {
+        fprintf(stderr, "Failed to resolve host\n");
+        return NULL;
     }
 
-    portno = 80;
-
-    memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(portno);
-    memcpy(&server_addr.sin_addr.s_addr, server->h_addr, server->h_length);
+    // Create a socket
+    int sockfd = socket(res->ai_family, res->ai_socktype, 0);
+    if (sockfd == -1) {
+        perror("socket");
+        freeaddrinfo(res);
+        return NULL;
+    }
 
     // Connect to the server
-    if (connect(sockfd, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0) {
-        error("ERROR connecting");
+    if (connect(sockfd, res->ai_addr, res->ai_addrlen) == -1) {
+        perror("connect");
+        close(sockfd);
+        freeaddrinfo(res);
+        return NULL;
     }
 
-    // Send a GET request to the website's server
-    sprintf(buffer, "GET /%s HTTP/1.1\r\nHost: man.he.net\r\n\r\n", command_name);
-    if (write(sockfd, buffer, strlen(buffer)) < 0) {
-        error("ERROR writing to socket");
+    // Send HTTP GET request
+    char request[512];
+    sprintf(request, "GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n", path, host);
+    if (send(sockfd, request, strlen(request), 0) == -1) {
+        perror("send");
+        close(sockfd);
+        freeaddrinfo(res);
+        return NULL;
     }
 
-    // Read and print the body of the website
-    memset(buffer, 0, sizeof(buffer));
-    int n;
-    while ((n = read(sockfd, buffer, sizeof(buffer) - 1)) > 0) {
-        printf("%s", buffer);
-        memset(buffer, 0, sizeof(buffer));
+    // Receive and store the response
+    char buffer[1024];
+    response = malloc(response_size); // Allocate space for null-terminator
+    response[0] = '\0'; // Initialize the response string
+
+    while (1) {
+        int bytes_received = recv(sockfd, buffer, sizeof(buffer) - 1, 0);
+        if (bytes_received <= 0) break;
+        buffer[bytes_received] = '\0';
+
+        // Calculate the new size
+        int new_size = response_size + bytes_received;
+
+        // Reallocate memory
+        response = realloc(response, new_size);
+
+        if (response == NULL) {
+            perror("realloc");
+            free(response);
+            close(sockfd);
+            freeaddrinfo(res);
+            return NULL;
+        }
+
+        strcat(response, buffer);
+        response_size = new_size;
     }
 
-    // Close the socket
+    // Clean up and close the socket
     close(sockfd);
+    freeaddrinfo(res);
+
+    return response;
 }
 
-int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s <command_name>\n", argv[0]);
-        return 1;
+#include <stdio.h>
+#include <string.h>
+
+// Function to remove HTML tags from a string
+void removeHtmlTags(char *html) {
+    int i = 0;
+    int j = 0;
+    int insideTag = 0;
+
+    while (html[i]) {
+        if (html[i] == '<') {
+            insideTag = 1;
+        } else if (html[i] == '>') {
+            insideTag = 0;
+        } else if (!insideTag) {
+            html[j++] = html[i];
+        }
+        i++;
     }
 
-    const char *command_name = argv[1];
-    fetchManPage(command_name);
+    html[j] = '\0';
+}
+
+// Function to skip the first n lines from a string
+void skipLines(char *text, int n) {
+    int i = 0;
+    while (n > 0 && text[i]) {
+        if (text[i] == '\n') {
+            n--;
+        }
+        i++;
+    }
+
+    // Copy the rest of the string
+    int j = 0;
+    while (text[i]) {
+        text[j++] = text[i++];
+    }
+    text[j] = '\0';
+}
+
+int main() {
+    const char *command = "pwd";  // Replace with the user's input
+    char url[512];
+    sprintf(url, "http://man.he.net/?topic=%s&section=all", command);
+
+    char *manPageHTML = httpGet(url);
+
+    if (manPageHTML) {
+        // Skip the first 19 lines
+        skipLines(manPageHTML, 19);
+
+        // Remove HTML tags from manPageHTML
+        removeHtmlTags(manPageHTML);
+
+        printf("Man Page Text:\n%s\n", manPageHTML);
+        free(manPageHTML);
+    } else {
+        printf("Failed to retrieve the man page HTML\n");
+    }
 
     return 0;
 }
