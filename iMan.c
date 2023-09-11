@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include "ctype.h"
 
 // Function to send an HTTP GET request and retrieve the response
 char *httpGet(const char *url) {
@@ -89,9 +90,6 @@ char *httpGet(const char *url) {
     return response;
 }
 
-#include <stdio.h>
-#include <string.h>
-
 // Function to remove HTML tags from a string
 void removeHtmlTags(char *html) {
     int i = 0;
@@ -130,8 +128,44 @@ void skipLines(char *text, int n) {
     text[j] = '\0';
 }
 
+void removeLastNLines(char *text, int n) {
+    if (n <= 0) {
+        return;  // Nothing to remove
+    }
+
+    int len = strlen(text);
+    int linesRemoved = 0;
+
+    for (int i = len - 1; i >= 0; i--) {
+        if (text[i] == '\n') {
+            linesRemoved++;
+            if (linesRemoved == n) {
+                text[i] = '\0';  // Null-terminate the string at this point
+                break;
+            }
+        }
+    }
+}
+
+int checkManPageText(const char *text) {
+    const char *pattern = "Man Pages Copyright Respective Owners.  Site Copyright (C) 1994 - 2023\nHurricane Electric.\nAll Rights Reserved.";
+
+    // Remove trailing spaces, tabs, and newlines before checking
+    int len = strlen(text);
+    while (len > 0 && (isspace(text[len - 1]) || text[len - 1] == '\n')) {
+        len--;
+    }
+
+    // Compare the cleaned text with the pattern
+    if (strncmp(text, pattern, len) == 0 && pattern[len] == '\0') {
+        return 1; // Match found
+    } else {
+        return 0; // No match
+    }
+}
+
 int main() {
-    const char *command = "pwd";  // Replace with the user's input
+    const char *command = "strstr";  // Replace with the user's input
     char url[512];
     sprintf(url, "http://man.he.net/?topic=%s&section=all", command);
 
@@ -139,13 +173,20 @@ int main() {
 
     if (manPageHTML) {
         // Skip the first 19 lines
-        skipLines(manPageHTML, 19);
+        skipLines(manPageHTML, 18);
 
         // Remove HTML tags from manPageHTML
         removeHtmlTags(manPageHTML);
 
-        printf("Man Page Text:\n%s\n", manPageHTML);
-        free(manPageHTML);
+        // Remove the last 5 lines
+        removeLastNLines(manPageHTML, 20);
+
+        if (checkManPageText(manPageHTML)) {
+            fprintf(stderr, "ERROR\n\tNo such command");
+        } else {
+            printf("%s\n", manPageHTML);
+            free(manPageHTML);
+        }
     } else {
         printf("Failed to retrieve the man page HTML\n");
     }
