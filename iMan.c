@@ -1,10 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include "ctype.h"
+#include "headers.h"
 
 // Function to send an HTTP GET request and retrieve the response
 char *httpGet(const char *url) {
@@ -147,7 +141,7 @@ void removeLastNLines(char *text, int n) {
     }
 }
 
-int checkManPageText(const char *text) {
+int noCommandFound(const char *text) {
     const char *pattern = "Man Pages Copyright Respective Owners.  Site Copyright (C) 1994 - 2023\nHurricane Electric.\nAll Rights Reserved.";
 
     // Remove trailing spaces, tabs, and newlines before checking
@@ -164,8 +158,8 @@ int checkManPageText(const char *text) {
     }
 }
 
-int main() {
-    const char *command = "strstr";  // Replace with the user's input
+void iMan(Command *cmd) {
+    char *command = cmd->argv[1];
     char url[512];
     sprintf(url, "http://man.he.net/?topic=%s&section=all", command);
 
@@ -181,8 +175,8 @@ int main() {
         // Remove the last 5 lines
         removeLastNLines(manPageHTML, 20);
 
-        if (checkManPageText(manPageHTML)) {
-            fprintf(stderr, "ERROR\n\tNo such command");
+        if (noCommandFound(manPageHTML)) {
+            fprintf(stderr, "ERROR\n\tNo such command\n");
         } else {
             printf("%s\n", manPageHTML);
             free(manPageHTML);
@@ -190,6 +184,4 @@ int main() {
     } else {
         printf("Failed to retrieve the man page HTML\n");
     }
-
-    return 0;
 }

@@ -25,6 +25,8 @@
 #include <errno.h>
 #include <ctype.h>
 #include <fcntl.h>
+#include <sys/socket.h>
+#include <netdb.h>
 
 
 #include "colors.h"

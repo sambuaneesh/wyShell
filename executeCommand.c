@@ -29,6 +29,8 @@ void executeCommand(char *command, int isBackground)
     else if (strcmp(cmd->argv[0], "pastevents") == 0)
     {
         pastevents(cmd);
+    } else if (strcmp(cmd->argv[0], "iMan") == 0) {
+        iMan(cmd);
     }
     else
     {

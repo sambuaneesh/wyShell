@@ -19,4 +19,6 @@ int pipeCommand(char *command);
 
 void ioRedirection(char *command);
 
+void iMan(Command *cmd);
+
 #endif
