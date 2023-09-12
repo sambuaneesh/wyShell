@@ -159,6 +159,10 @@ int noCommandFound(const char *text) {
 }
 
 void iMan(Command *cmd) {
+    if (cmd->argc != 2) {
+        fprintf(stderr, "ERROR\n\tUsage: iMan <command>\n");
+        return;
+    }
     char *command = cmd->argv[1];
     char url[512];
     sprintf(url, "http://man.he.net/?topic=%s&section=all", command);

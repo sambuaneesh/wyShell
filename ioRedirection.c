@@ -1,127 +1,109 @@
 #include "headers.h"
 #include "tools.h"
 
-void writeFile(char *command) {
-    char *commandCopy = malloc(strlen(command) + 1);
-    strcpy(commandCopy, command);
+void executeWithRedirection(char *command, char *inputFile, char *outputFile, int append) {
+    // Create pipes for input and output redirection
+    int inputPipe[2] = {-1, -1};
+    int outputPipe[2] = {-1, -1};
 
-    char *token = strtok(commandCopy, ">");
-    char *commandToExecute = malloc(strlen(token) + 1);
-    strcpy(commandToExecute, token);
-
-    token = strtok(NULL, ">");
-    char *fileName = malloc(strlen(token) + 1);
-    strcpy(fileName, token);
-
-    trim(commandToExecute);
-    trim(fileName);
-
-    int fd = open(fileName, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    if (fd < 0) {
-        perror("Error opening file");
-        return;
+    // Check if input file is specified
+    if (inputFile != NULL) {
+        int fd_in = open(inputFile, O_RDONLY);
+        if (fd_in < 0) {
+            perror("Error opening input file");
+            return;
+        }
+        dup2(fd_in, STDIN_FILENO);
+        close(fd_in);
     }
 
-    int stdoutCopy = dup(STDOUT_FILENO);
-    dup2(fd, STDOUT_FILENO);
-    close(fd);
-
-    executeCommand(commandToExecute, 0);
-
-    dup2(stdoutCopy, STDOUT_FILENO);
-    close(stdoutCopy);
-
-    free(commandCopy);
-    free(commandToExecute);
-    free(fileName);
-}
-
-void readFile(char *command) {
-    char *commandCopy = malloc(strlen(command) + 1);
-    strcpy(commandCopy, command);
-
-    char *token = strtok(commandCopy, "<");
-    char *commandToExecute = malloc(strlen(token) + 1);
-    strcpy(commandToExecute, token);
-
-    token = strtok(NULL, "<");
-    char *fileName = malloc(strlen(token) + 1);
-    strcpy(fileName, token);
-
-    trim(commandToExecute);
-    trim(fileName);
-
-    int fd = open(fileName, O_RDONLY);
-    if (fd < 0) {
-        perror("Error opening file");
-        return;
+    // Check if output file is specified
+    if (outputFile != NULL) {
+        int flags = O_WRONLY | O_CREAT;
+        if (append) {
+            flags |= O_APPEND;
+        } else {
+            flags |= O_TRUNC;
+        }
+        int fd_out = open(outputFile, flags, 0644);
+        if (fd_out < 0) {
+            perror("Error opening output file");
+            return;
+        }
+        dup2(fd_out, STDOUT_FILENO);
+        close(fd_out);
     }
 
-    int stdinCopy = dup(STDIN_FILENO);
-    dup2(fd, STDIN_FILENO);
-    close(fd);
+    // Tokenize and execute the command
+    char *parts[100];  // Adjust the size accordingly
+    int numParts = 0;
 
-    executeCommand(commandToExecute, 0);
+    char *token = strtok(command, " ");
+    while (token != NULL) {
+        parts[numParts++] = token;
+        token = strtok(NULL, " ");
+    }
 
-    dup2(stdinCopy, STDIN_FILENO);
-    close(stdinCopy);
+    // Ensure the last element is NULL for execvp
+    parts[numParts] = NULL;
 
-    free(commandCopy);
-    free(commandToExecute);
-    free(fileName);
+    // Execute the command
+    execvp(parts[0], parts);
+    // If execvp fails, perror will be called, and you can handle the error accordingly.
+    perror("Error executing command");
+    exit(EXIT_FAILURE);
 }
 
-void ioRedirection(char *command) {
-//    check if there is a pipe
+void ioRedirectionHelper(char *command) {
+    // Check if there is a pipe
     if (strchr(command, '|') != NULL) {
         pipeCommand(command);
         return;
     }
 
-    if (strchr(command, '<') != NULL) {
-        readFile(command);
-        return;
-    }
+    // Initialize variables for redirection
+    char *inputFile = NULL;
+    char *outputFile = NULL;
+    int append = 0; // Flag for append redirection
 
-//    if there is a >>, append to file
-    if (strstr(command, ">>") != NULL) {
-        char *commandCopy = malloc(strlen(command) + 1);
-        strcpy(commandCopy, command);
-
-        char *token = strtok(commandCopy, ">>");
-        char *commandToExecute = malloc(strlen(token) + 1);
-        strcpy(commandToExecute, token);
-
-        token = strtok(NULL, ">>");
-        char *fileName = malloc(strlen(token) + 1);
-        strcpy(fileName, token);
-
-        trim(commandToExecute);
-        trim(fileName);
-
-        int fd = open(fileName, O_WRONLY | O_CREAT | O_APPEND, 0644);
-        if (fd < 0) {
-            perror("Error opening file");
-            return;
+    // Tokenize the command to identify input and output redirection
+    char *token = strtok(command, " ");
+    while (token != NULL) {
+        if (strcmp(token, "<") == 0) {
+            // Input redirection
+            token = strtok(NULL, " "); // Get the input file name
+            inputFile = token;
+        } else if (strcmp(token, ">") == 0) {
+            // Output redirection
+            token = strtok(NULL, " "); // Get the output file name
+            outputFile = token;
+        } else if (strcmp(token, ">>") == 0) {
+            // Append redirection
+            token = strtok(NULL, " "); // Get the output file name
+            outputFile = token;
+            append = 1; // Set the append flag
         }
-
-        int stdoutCopy = dup(STDOUT_FILENO);
-        dup2(fd, STDOUT_FILENO);
-        close(fd);
-
-        executeCommand(commandToExecute, 0);
-
-        dup2(stdoutCopy, STDOUT_FILENO);
-        close(stdoutCopy);
-
-        free(commandCopy);
-        free(commandToExecute);
-        free(fileName);
-        return;
+        token = strtok(NULL, " "); // Move to the next token
     }
 
-    if (strchr(command, '>') != NULL) {
-        writeFile(command);
-        return;
+    // Tokenize the command again to separate the command itself
+    char *commandToExecute = strtok(command, "<>"); // Split by <, >, or >>
+    trim(commandToExecute);
+
+    // Execute the command with redirection
+    executeWithRedirection(commandToExecute, inputFile, outputFile, append);
+}
+
+void ioRedirection(char *cmd) {
+//    fork and use ioRedirectionHelper in the child process
+    pid_t pid = fork();
+    if (pid == 0) {
+        ioRedirectionHelper(cmd);
+    } else if (pid > 0) {
+        // Parent process
+        int status;
+        waitpid(pid, &status, 0);
+    } else {
+        perror("Error forking");
     }
 }
