@@ -17,6 +17,8 @@ void trim(char *str);
 
 int pipeCommand(char *command);
 
+int ioPipe(char *cmd);
+
 void ioRedirection(char *command);
 
 void iMan(Command *cmd);

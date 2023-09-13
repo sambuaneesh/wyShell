@@ -5,12 +5,32 @@
 void executeCommand(char *command, int isBackground)
 {
     signal(SIGCHLD, sigchld_handler);
-    if (strchr(command, '<') != NULL || strchr(command, '>')) {
+    int hasPipe = 0;
+    int hasIO = 0;
+//    check if there is a pipe
+    if (strchr(command, '|') != NULL) {
+        hasPipe = 1;
+    }
+//    check if there is IO redirection
+    if (strchr(command, '<') != NULL || strchr(command, '>') != NULL) {
+        hasIO = 1;
+    }
+//    if (strchr(command, '<') != NULL || strchr(command, '>')) {
+//        ioRedirection(command);
+//        return;
+//    }
+//    if (pipeCommand(command))
+//        return;
+    if (hasPipe && hasIO) {
+        ioPipe(command);
+        return;
+    } else if (hasPipe) {
+        pipeCommand(command);
+        return;
+    } else if (hasIO) {
         ioRedirection(command);
         return;
     }
-    if (pipeCommand(command))
-        return;
     Command *cmd = parseCommand(command, " \t");
     if (strcmp(cmd->argv[0], "warp") == 0)
     {

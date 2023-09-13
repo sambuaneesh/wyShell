@@ -1,44 +1,52 @@
 #include "headers.h"
 #include "tools.h"
 
-void executeWithRedirection(char *command, char *inputFile, char *outputFile, int append) {
-    // Create pipes for input and output redirection
-    int inputPipe[2] = {-1, -1};
-    int outputPipe[2] = {-1, -1};
+int ioRedirectionHelper(char *cmd) {
+    int input_fd = STDIN_FILENO;  // Default input is stdin
+    int output_fd = STDOUT_FILENO; // Default output is stdout
+    int append_flag = 0;          // Flag for append mode
 
-    // Check if input file is specified
-    if (inputFile != NULL) {
-        int fd_in = open(inputFile, O_RDONLY);
-        if (fd_in < 0) {
-            perror("Error opening input file");
-            return;
+    // Check for input redirection
+    char *input_file = strchr(cmd, '<');
+    if (input_file != NULL) {
+        *input_file = '\0'; // Split the command at the '<' character
+        input_file = strtok(input_file + 1, " \t"); // Get the input file name
+        input_fd = open(input_file, O_RDONLY);
+        if (input_fd == -1) {
+            perror("open");
+            return 1;
         }
-        dup2(fd_in, STDIN_FILENO);
-        close(fd_in);
     }
 
-    // Check if output file is specified
-    if (outputFile != NULL) {
-        int flags = O_WRONLY | O_CREAT;
-        if (append) {
-            flags |= O_APPEND;
-        } else {
-            flags |= O_TRUNC;
+    // Check for output redirection (including append mode)
+    char *output_file = strstr(cmd, ">>");
+    if (output_file != NULL) {
+        *output_file = '\0'; // Split the command at ">>"
+        output_file = strtok(output_file + 2, " \t"); // Get the output file name
+        output_fd = open(output_file, O_WRONLY | O_CREAT | O_APPEND, 0666);
+        if (output_fd == -1) {
+            perror("open");
+            return 1;
         }
-        int fd_out = open(outputFile, flags, 0644);
-        if (fd_out < 0) {
-            perror("Error opening output file");
-            return;
+        append_flag = 1; // Set the append flag
+    } else {
+        output_file = strchr(cmd, '>');
+        if (output_file != NULL) {
+            *output_file = '\0'; // Split the command at the '>' character
+            output_file = strtok(output_file + 1, " \t"); // Get the output file name
+            output_fd = open(output_file, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+            if (output_fd == -1) {
+                perror("open");
+                return 1;
+            }
         }
-        dup2(fd_out, STDOUT_FILENO);
-        close(fd_out);
     }
 
-    // Tokenize and execute the command
+    // Tokenize the command by space to separate the command and its arguments
+    char *token = strtok(cmd, " ");
     char *parts[100];  // Adjust the size accordingly
     int numParts = 0;
 
-    char *token = strtok(command, " ");
     while (token != NULL) {
         parts[numParts++] = token;
         token = strtok(NULL, " ");
@@ -47,51 +55,27 @@ void executeWithRedirection(char *command, char *inputFile, char *outputFile, in
     // Ensure the last element is NULL for execvp
     parts[numParts] = NULL;
 
+    // Redirect input if specified
+    if (input_fd != STDIN_FILENO) {
+        dup2(input_fd, STDIN_FILENO);
+        close(input_fd);
+    }
+
+    // Redirect output if specified
+    if (output_fd != STDOUT_FILENO) {
+        if (append_flag) {
+            dup2(output_fd, STDOUT_FILENO);
+        } else {
+            dup2(output_fd, STDOUT_FILENO);
+            close(output_fd);
+        }
+    }
+
     // Execute the command
     execvp(parts[0], parts);
     // If execvp fails, perror will be called, and you can handle the error accordingly.
     perror("Error executing command");
-    exit(EXIT_FAILURE);
-}
-
-void ioRedirectionHelper(char *command) {
-    // Check if there is a pipe
-    if (strchr(command, '|') != NULL) {
-        pipeCommand(command);
-        return;
-    }
-
-    // Initialize variables for redirection
-    char *inputFile = NULL;
-    char *outputFile = NULL;
-    int append = 0; // Flag for append redirection
-
-    // Tokenize the command to identify input and output redirection
-    char *token = strtok(command, " ");
-    while (token != NULL) {
-        if (strcmp(token, "<") == 0) {
-            // Input redirection
-            token = strtok(NULL, " "); // Get the input file name
-            inputFile = token;
-        } else if (strcmp(token, ">") == 0) {
-            // Output redirection
-            token = strtok(NULL, " "); // Get the output file name
-            outputFile = token;
-        } else if (strcmp(token, ">>") == 0) {
-            // Append redirection
-            token = strtok(NULL, " "); // Get the output file name
-            outputFile = token;
-            append = 1; // Set the append flag
-        }
-        token = strtok(NULL, " "); // Move to the next token
-    }
-
-    // Tokenize the command again to separate the command itself
-    char *commandToExecute = strtok(command, "<>"); // Split by <, >, or >>
-    trim(commandToExecute);
-
-    // Execute the command with redirection
-    executeWithRedirection(commandToExecute, inputFile, outputFile, append);
+    return 1;
 }
 
 void ioRedirection(char *cmd) {

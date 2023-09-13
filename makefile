@@ -1,16 +1,5 @@
 main:
-	@gcc -w -g main.c \
-	command.c \
-	executeCommand.c \
-	handleInput.c \
-	initHome.c \
-	pastevents.c \
-	peek.c \
-	proclore.c \
-	prompt.c \
-	warp.c \
-	seek.c \
-	wysh.c
+	@gcc -o wysh -g *.c
 
 run:
 	@gcc -o wysh -g *.c && ./wysh
