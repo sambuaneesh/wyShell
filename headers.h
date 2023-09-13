@@ -27,6 +27,8 @@
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <termios.h>
+#include <signal.h>
 
 
 #include "colors.h"

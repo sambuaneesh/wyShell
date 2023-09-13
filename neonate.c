@@ -1,19 +1,25 @@
-/*
-Command : neonate -n [time_arg]
-The command prints the Process-ID of the most recently created process on the system (you are not allowed to use system programs), this pid will be printed every [time_arg] seconds until the key ‘x’ is pressed.
-By default , I/O of the terminal is line-buffered, i.e, input is guaranteed to be flushed/sent to your program once a line is terminated.
-termios.h, a POSIX-standard header file, allows you to get the tty into raw mode whereas it is generally in cooked mode. Reading it’s documentation/man pages is suggested.
-Getting the terminal into raw mode allows it to be such that at soon as a key is pressed, the input signal is sent to your program, along with a lot of other default features like echoing being disabled.
-*/
+#include "headers.h"
+#include "tools.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <termios.h>
-#include <unistd.h>
-#include <signal.h>
-#include <string.h>
-#include <fcntl.h>
-#include <string.h>
+void die(const char *s) {
+    perror(s);
+    exit(1);
+}
+
+struct termios orig_termios;
+
+void disableRawMode() {
+    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios) == -1)
+        die("tcsetattr");
+}
+
+void enableRawMode() {
+    if (tcgetattr(STDIN_FILENO, &orig_termios) == -1) die("tcgetattr");
+    atexit(disableRawMode);
+    struct termios raw = orig_termios;
+    raw.c_lflag &= ~(ICANON | ECHO);
+    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) die("tcsetattr");
+}
 
 volatile sig_atomic_t shouldExit = 0;
 
