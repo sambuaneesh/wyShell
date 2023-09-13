@@ -5,8 +5,11 @@
 char *global_home = NULL;
 char *prev_directory = NULL;
 
+struct ProcessNode *process_list_head = NULL;
+
 int main()
 {
+//    struct ProcessNode* process_list_head = NULL;
     global_home = initializeGlobalHome();
     loadPastEvents();
     printWyshArt();
@@ -38,5 +41,6 @@ int main()
             handleInput(input);
             backgroundProcessStatus = 0;
         }
+//        viewProcesses();
     }
 }

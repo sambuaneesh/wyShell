@@ -21,4 +21,6 @@ void ioRedirection(char *command);
 
 void iMan(Command *cmd);
 
+void printActivities();
+
 #endif

@@ -45,5 +45,23 @@ typedef struct
     int argc;
 } Command;
 
+typedef struct {
+    pid_t pid;
+    char command[256];
+    int is_background;
+    int exit_status; // Store the exit status of terminated processes
+    char state[16];
+} ProcessInfo;
+
+struct ProcessNode {
+    ProcessInfo process_info;
+    struct ProcessNode *next;
+};
+
+extern struct ProcessNode *process_list_head;
+
+// Function to insert a process into the linked list in lexicographic order
+
 #include "prompt.h"
+#include "process.h"
 #endif

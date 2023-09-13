@@ -1,8 +1,10 @@
 #include "headers.h"
 #include "tools.h"
 
+
 void executeCommand(char *command, int isBackground)
 {
+    signal(SIGCHLD, sigchld_handler);
     if (strchr(command, '<') != NULL || strchr(command, '>')) {
         ioRedirection(command);
         return;
@@ -31,6 +33,8 @@ void executeCommand(char *command, int isBackground)
         pastevents(cmd);
     } else if (strcmp(cmd->argv[0], "iMan") == 0) {
         iMan(cmd);
+    } else if (strcmp(cmd->argv[0], "activities") == 0) {
+        printActivities();
     }
     else
     {
@@ -48,6 +52,14 @@ void executeCommand(char *command, int isBackground)
         else if (pid > 0)
         {
             // Parent process
+            ProcessInfo process_info;
+            process_info.pid = pid;
+            snprintf(process_info.command, sizeof(process_info.command), "%s", cmd->argv[0]);
+            process_info.is_background = isBackground;
+
+            // Insert process info into the list for both foreground and background
+            insertProcess(process_info);
+
             if (!isBackground)
             {
                 // Foreground process
@@ -65,11 +77,22 @@ void executeCommand(char *command, int isBackground)
                 {
                     printf("(%s : %lds) ", cmd->argv[0], elapsed_time / 1000);
                 }
+
+                // Search for the foreground process by PID and update its state
+                struct ProcessNode *current = process_list_head;
+                while (current != NULL) {
+                    if (current->process_info.pid == pid) {
+                        snprintf(current->process_info.state, sizeof(current->process_info.state), "Stopped");
+                        break; // Found and updated, exit loop
+                    }
+                    current = current->next;
+                }
             }
             else
             {
                 // Background process
                 printf("[%d]\n", pid);
+                fflush(stdout);
             }
         }
         else
