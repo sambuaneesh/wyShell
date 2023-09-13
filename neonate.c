@@ -1,94 +1,78 @@
+/*
+Command : neonate -n [time_arg]
+The command prints the Process-ID of the most recently created process on the system (you are not allowed to use system programs), this pid will be printed every [time_arg] seconds until the key ‘x’ is pressed.
+By default , I/O of the terminal is line-buffered, i.e, input is guaranteed to be flushed/sent to your program once a line is terminated.
+termios.h, a POSIX-standard header file, allows you to get the tty into raw mode whereas it is generally in cooked mode. Reading it’s documentation/man pages is suggested.
+Getting the terminal into raw mode allows it to be such that at soon as a key is pressed, the input signal is sent to your program, along with a lot of other default features like echoing being disabled.
+*/
+
 #include <stdio.h>
-#include <termios.h>
 #include <stdlib.h>
+#include <termios.h>
 #include <unistd.h>
-#include <ctype.h>
+#include <signal.h>
+#include <string.h>
+#include <fcntl.h>
 #include <string.h>
 
-void die(const char *s) {
-    perror(s);
-    exit(1);
-}
+volatile sig_atomic_t shouldExit = 0;
 
-struct termios orig_termios;
-
-void disableRawMode() {
-    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios) == -1)
-        die("tcsetattr");
-}
-
-/**
- * Enable row mode for the terminal
- * The ECHO feature causes each key you type to be printed to the terminal, so you can see what you’re typing.
- * Terminal attributes can be read into a termios struct by tcgetattr().
- * After modifying them, you can then apply them to the terminal using tcsetattr().
- * The TCSAFLUSH argument specifies when to apply the change: in this case, it waits for all pending output to be written to the terminal, and also discards any input that hasn’t been read.
- * The c_lflag field is for “local flags”
-*/
-void enableRawMode() {
-    if (tcgetattr(STDIN_FILENO, &orig_termios) == -1) die("tcgetattr");
-    atexit(disableRawMode);
-    struct termios raw = orig_termios;
-    raw.c_lflag &= ~(ICANON | ECHO);
-    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) die("tcsetattr");
-}
-
-/**
- * stdout and stdin are buffered we disable buffering on that
- * After entering in raw mode we read characters one by one
- * Up arrow keys and down arrow keys are represented by 3 byte escape codes
- * starting with ascii number 27 i.e. ESC key
- * This way we interpret arrow keys
- * Tabs are usually handled by the term, but here we are simulating tabs for the sake of simplicity
- * Backspace move the cursor one control character to the left
- * @return
-*/
-int main() {
-    char *inp = malloc(sizeof(char) * 100);
-    char c;
-    while (1) {
-        setbuf(stdout, NULL);
-        enableRawMode();
-        printf("Prompt>");
-        memset(inp, '\0', 100);
-        int pt = 0;
-        while (read(STDIN_FILENO, &c, 1) == 1) {
-            if (iscntrl(c)) {
-                if (c == 10) break;
-                else if (c == 27) {
-                    char buf[3];
-                    buf[2] = 0;
-                    if (read(STDIN_FILENO, buf, 2) == 2) { // length of escape code
-                        printf("\rarrow key: %s", buf);
-                    }
-                } else if (c == 127) { // backspace
-                    if (pt > 0) {
-                        if (inp[pt - 1] == 9) {
-                            for (int i = 0; i < 7; i++) {
-                                printf("\b");
-                            }
-                        }
-                        inp[--pt] = '\0';
-                        printf("\b \b");
-                    }
-                } else if (c == 9) { // TAB character
-                    inp[pt++] = c;
-                    for (int i = 0; i < 8; i++) { // TABS should be 8 spaces
-                        printf(" ");
-                    }
-                } else if (c == 4) {
-                    exit(0);
-                } else {
-                    printf("%d\n", c);
-                }
-            } else {
-                inp[pt++] = c;
-                printf("%c", c);
-            }
-        }
-        disableRawMode();
-
-        printf("\nInput Read: [%s]\n", inp);
+void handleSignal(int signo) {
+    if (signo == SIGINT || signo == SIGQUIT) {
+        shouldExit = 1;
     }
+}
+
+int main(int argc, char *argv[]) {
+    if (argc != 3 || strcmp(argv[1], "-n") != 0) {
+        fprintf(stderr, "Usage: %s -n [time_arg]\n", argv[0]);
+        return 1;
+    }
+
+    int time_arg = atoi(argv[2]);
+
+    struct sigaction sa;
+    sa.sa_handler = handleSignal;
+    sigaction(SIGINT, &sa, NULL);
+    sigaction(SIGQUIT, &sa, NULL);
+
+    struct termios originalTermios, rawTermios;
+
+    // Get the original terminal attributes
+    tcgetattr(STDIN_FILENO, &originalTermios);
+
+    // Enable raw mode for terminal input
+    rawTermios = originalTermios;
+    rawTermios.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &rawTermios);
+
+    // Set stdin to non-blocking mode
+    int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+    fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+
+    // Print the initial PID
+    printf("%d\n", getpid());
+
+    while (!shouldExit) {
+        // Sleep for the specified time interval
+        sleep(time_arg);
+
+        // Check for 'x' keypress
+        char c;
+        if (read(STDIN_FILENO, &c, 1) == 1 && c == 'x') {
+            shouldExit = 1;
+        }
+
+        // Get the most recently created process ID
+        pid_t pid = getpid();
+
+        // Print the PID
+        printf("%d\n", pid);
+        fflush(stdout);
+    }
+
+    // Restore terminal attributes before exit
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &originalTermios);
+
     return 0;
 }
