@@ -84,62 +84,6 @@ char *httpGet(const char *url) {
     return response;
 }
 
-// Function to remove HTML tags from a string
-void removeHtmlTags(char *html) {
-    int i = 0;
-    int j = 0;
-    int insideTag = 0;
-
-    while (html[i]) {
-        if (html[i] == '<') {
-            insideTag = 1;
-        } else if (html[i] == '>') {
-            insideTag = 0;
-        } else if (!insideTag) {
-            html[j++] = html[i];
-        }
-        i++;
-    }
-
-    html[j] = '\0';
-}
-
-// Function to skip the first n lines from a string
-void skipLines(char *text, int n) {
-    int i = 0;
-    while (n > 0 && text[i]) {
-        if (text[i] == '\n') {
-            n--;
-        }
-        i++;
-    }
-
-    // Copy the rest of the string
-    int j = 0;
-    while (text[i]) {
-        text[j++] = text[i++];
-    }
-    text[j] = '\0';
-}
-
-void removeLastNLines(char *text, int n) {
-    if (n <= 0) {
-        return;  // Nothing to remove
-    }
-
-    int len = strlen(text);
-    int linesRemoved = 0;
-
-    for (int i = len - 1; i >= 0; i--) {
-        if (text[i] == '\n') {
-            linesRemoved++;
-            if (linesRemoved == n) {
-                text[i] = '\0';  // Null-terminate the string at this point
-                break;
-            }
-        }
-    }
-}
 
 int noCommandFound(const char *text) {
     const char *pattern = "Man Pages Copyright Respective Owners.  Site Copyright (C) 1994 - 2023\nHurricane Electric.\nAll Rights Reserved.";
@@ -170,21 +114,32 @@ void iMan(Command *cmd) {
     char *manPageHTML = httpGet(url);
 
     if (manPageHTML) {
-        // Skip the first 19 lines
-        skipLines(manPageHTML, 18);
+        // Locate "NAME" section
+        char *nameStart = strstr(manPageHTML, "NAME\n");
 
-        // Remove HTML tags from manPageHTML
-        removeHtmlTags(manPageHTML);
-
-        // Remove the last 5 lines
-        removeLastNLines(manPageHTML, 20);
-
-        if (noCommandFound(manPageHTML)) {
-            fprintf(stderr, "ERROR\n\tNo such command\n");
+        if (nameStart) {
+            // Print from "NAME" to "AUTHOR" if "AUTHOR" is found
+            char *authorStart = strstr(manPageHTML, "AUTHOR");
+            if (authorStart && authorStart > nameStart) {
+                size_t section_length = authorStart - nameStart;
+                printf("%.*s\n", (int) section_length, nameStart);
+            }
+                // Print from "NAME" to "SEE ALSO" if "AUTHOR" is not found
+            else {
+                char *seealsoStart = strstr(manPageHTML, "SEE ALSO");
+                if (seealsoStart && seealsoStart > nameStart) {
+                    size_t section_length = seealsoStart - nameStart;
+                    printf("%.*s\n", (int) section_length, nameStart);
+                } else {
+                    // "SEE ALSO" not found, print the whole "NAME" section
+                    printf("%s\n", nameStart);
+                }
+            }
         } else {
-            printf("%s\n", manPageHTML);
-            free(manPageHTML);
+            fprintf(stderr, "ERROR\n\tSection not found\n");
         }
+
+        free(manPageHTML);
     } else {
         printf("Failed to retrieve the man page HTML\n");
     }
