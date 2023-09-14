@@ -7,6 +7,29 @@ char *prev_directory = NULL;
 
 struct ProcessNode *process_list_head = NULL;
 
+
+void handleCtrlC(int signal) {
+    if (process_list_head != NULL) {
+        // There is a foreground process running
+        pid_t foregroundPid = process_list_head->process_info.pid;
+
+        // Send the SIGINT signal to the foreground process
+        if (kill(foregroundPid, SIGINT) == 0) {
+            // Print a message indicating Ctrl+C was pressed
+            printf("Terminated process with PID %d\n", foregroundPid);
+
+            // Update the state of the foreground process to "Terminated"
+            updateProcessState(foregroundPid, "Terminated");
+        } else {
+            perror("Error sending SIGINT signal");
+        }
+    } else {
+        // No foreground process is running
+        printf("No foreground process running to terminate.\n");
+    }
+}
+
+
 int main()
 {
 //    struct ProcessNode* process_list_head = NULL;
@@ -14,12 +37,12 @@ int main()
     loadPastEvents();
     printWyshArt();
 
+    signal(SIGINT, handleCtrlC);
     int backgroundProcessStatus = 0;
 
     while (1)
     {
         prompt(backgroundProcessStatus);
-
         char input[MAX_INPUT_LENGTH];
         fgets(input, MAX_INPUT_LENGTH, stdin);
 
