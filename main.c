@@ -1,3 +1,4 @@
+
 #include "headers.h"
 #include "tools.h"
 #include "handleInput.h"
@@ -9,7 +10,7 @@ struct ProcessNode *process_list_head = NULL;
 
 void handleCtrlC(int signal) {
     if (process_list_head != NULL) {
-        // There is a foreground process running
+// There is a foreground process running
         pid_t foregroundPid = process_list_head->process_info.pid;
 
         // Send the SIGINT signal to the foreground process
@@ -20,7 +21,7 @@ void handleCtrlC(int signal) {
             // Update the state of the foreground process to "Terminated"
             updateProcessState(foregroundPid, "Terminated");
         } else {
-            perror("Error sending SIGINT signal");
+//            perror("Error sending SIGINT signal");
         }
     } else {
         // No foreground process is running
@@ -62,26 +63,24 @@ void handleCtrlZ(int signal) {
 
 
 int main() {
-    // Initialize the signal handlers
-    signal(SIGINT, SIG_IGN); // Ignore Ctrl+C
-    signal(SIGTSTP, SIG_IGN); // Ignore Ctrl+Z
-
+//    struct ProcessNode* process_list_head = NULL;
     global_home = initializeGlobalHome();
+    signal(SIGINT, handleCtrlC);
+    signal(SIGTSTP, handleCtrlZ);
+//    signal(SIGQUIT, handleCtrlD);
     loadPastEvents();
     printWyshArt();
 
     int backgroundProcessStatus = 0;
-
     while (1) {
         prompt(backgroundProcessStatus);
-
         char input[MAX_INPUT_LENGTH];
+//        fgets(input, MAX_INPUT_LENGTH, stdin);
         if (fgets(input, MAX_INPUT_LENGTH, stdin) == NULL) {
             // Handle Ctrl+D (EOF)
             printf("Ctrl+D received, logging out...\n");
             break; // Exit the shell
         }
-
         input[strcspn(input, "\n")] = '\0';
 
         addToPastEvents(input);
@@ -96,9 +95,8 @@ int main() {
             handleInput(input);
             backgroundProcessStatus = 0;
         }
+//        viewProcesses();
     }
-
-    // Clean up resources
     freeProcessList();
     free(global_home);
     free(prev_directory);

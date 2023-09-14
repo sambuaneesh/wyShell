@@ -53,6 +53,8 @@ void executeCommand(char *command, int isBackground) {
         iMan(cmd);
     } else if (strcmp(cmd->argv[0], "activities") == 0) {
         printActivities();
+    } else if (strcmp(cmd->argv[0], "neonate") == 0) {
+        neonate(cmd);
     } else if (strcmp(cmd->argv[0], "fg") == 0 || strcmp(cmd->argv[0], "bg") == 0) {
         handleFgBgCommand(cmd);
     } else if (strcmp(cmd->argv[0], "ping") == 0) {
@@ -95,6 +97,7 @@ void executeCommand(char *command, int isBackground) {
             }
         } else if (pid > 0) {
             // Parent process
+            lastProcessID = pid;
             ProcessInfo process_info;
             process_info.pid = pid;
             snprintf(process_info.command, sizeof(process_info.command), "%s", cmd->argv[0]);

@@ -37,4 +37,6 @@ void updateProcessState(int pid, const char *state);
 
 void freeProcessList();
 
+void neonate(Command *cmd);
+
 #endif

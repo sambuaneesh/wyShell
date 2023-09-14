@@ -35,6 +35,7 @@
 
 extern char *global_home;
 extern char *prev_directory;
+extern pid_t lastProcessID;
 
 extern char *past_events[MAX_PAST_EVENTS];
 extern int num_past_events;

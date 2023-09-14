@@ -1,5 +1,8 @@
 #include "headers.h"
 #include "tools.h"
+#include <sys/select.h>
+
+pid_t lastProcessID = -1;
 
 void die(const char *s) {
     perror(s);
@@ -21,64 +24,56 @@ void enableRawMode() {
     if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1) die("tcsetattr");
 }
 
-volatile sig_atomic_t shouldExit = 0;
-
-void handleSignal(int signo) {
-    if (signo == SIGINT || signo == SIGQUIT) {
-        shouldExit = 1;
+void neonate(Command *cmd) {
+    if (cmd->argc != 3 || strcmp(cmd->argv[1], "-n") != 0) {
+        fprintf(stderr, "Usage: %s -n [time_arg]\n", cmd->argv[0]);
+        return; // Exit with no effect if the command is not properly formatted
     }
+
+    int time_arg = atoi(cmd->argv[2]);
+
+    char c;
+    enableRawMode();
+    while (1) {
+        // Use the `ps` command to get the latest running process ID
+        FILE *ps = popen("ps -e -o pid --sort=-start_time | awk 'NR==2{print $1}'", "r");
+        if (ps == NULL) {
+            perror("Error executing ps command");
+            return;
+        }
+
+        char latestProcessIDStr[20];
+        if (fgets(latestProcessIDStr, sizeof(latestProcessIDStr), ps) != NULL) {
+            lastProcessID = atoi(latestProcessIDStr);
+        }
+        pclose(ps);
+
+        printf("%d\n", lastProcessID);
+        fflush(stdout);
+
+        // Check for input without blocking
+        struct timeval tv;
+        fd_set fds;
+        tv.tv_sec = 0;
+        tv.tv_usec = 0;
+        FD_ZERO(&fds);
+        FD_SET(STDIN_FILENO, &fds);
+
+        int result = select(STDIN_FILENO + 1, &fds, NULL, NULL, &tv);
+        if (result == -1) {
+            perror("select");
+        } else if (result > 0 && FD_ISSET(STDIN_FILENO, &fds)) {
+            // Input is available, read it
+            if (read(STDIN_FILENO, &c, 1) == 1) {
+                if (c == 'x') {
+                    break; // Exit when 'x' is pressed
+                }
+            }
+        }
+
+        // Sleep for 'time_arg' seconds
+        sleep(time_arg);
+    }
+
+    disableRawMode(); // Restore the terminal to its original mode
 }
-//
-//int main(int argc, char *argv[]) {
-//    if (argc != 3 || strcmp(argv[1], "-n") != 0) {
-//        fprintf(stderr, "Usage: %s -n [time_arg]\n", argv[0]);
-//        return 1;
-//    }
-//
-//    int time_arg = atoi(argv[2]);
-//
-//    struct sigaction sa;
-//    sa.sa_handler = handleSignal;
-//    sigaction(SIGINT, &sa, NULL);
-//    sigaction(SIGQUIT, &sa, NULL);
-//
-//    struct termios originalTermios, rawTermios;
-//
-//    // Get the original terminal attributes
-//    tcgetattr(STDIN_FILENO, &originalTermios);
-//
-//    // Enable raw mode for terminal input
-//    rawTermios = originalTermios;
-//    rawTermios.c_lflag &= ~(ICANON | ECHO);
-//    tcsetattr(STDIN_FILENO, TCSAFLUSH, &rawTermios);
-//
-//    // Set stdin to non-blocking mode
-//    int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
-//    fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
-//
-//    // Print the initial PID
-//    printf("%d\n", getpid());
-//
-//    while (!shouldExit) {
-//        // Sleep for the specified time interval
-//        sleep(time_arg);
-//
-//        // Check for 'x' keypress
-//        char c;
-//        if (read(STDIN_FILENO, &c, 1) == 1 && c == 'x') {
-//            shouldExit = 1;
-//        }
-//
-//        // Get the most recently created process ID
-//        pid_t pid = getpid();
-//
-//        // Print the PID
-//        printf("%d\n", pid);
-//        fflush(stdout);
-//    }
-//
-//    // Restore terminal attributes before exit
-//    tcsetattr(STDIN_FILENO, TCSAFLUSH, &originalTermios);
-//
-//    return 0;
-//}
