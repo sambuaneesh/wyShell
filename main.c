@@ -7,7 +7,6 @@ char *prev_directory = NULL;
 
 struct ProcessNode *process_list_head = NULL;
 
-
 void handleCtrlC(int signal) {
     if (process_list_head != NULL) {
         // There is a foreground process running
@@ -29,41 +28,83 @@ void handleCtrlC(int signal) {
     }
 }
 
+void handleCtrlZ(int signal) {
+    if (process_list_head != NULL) {
+        pid_t foregroundPid = process_list_head->process_info.pid;
 
-int main()
-{
-//    struct ProcessNode* process_list_head = NULL;
+        if (foregroundPid == getpid()) {
+            // The foreground process is the shell itself, so Ctrl+Z has no effect
+            printf("Ctrl+Z: No foreground process running to stop.\n");
+        } else {
+            // Send the SIGTSTP signal to the foreground process
+            if (kill(foregroundPid, SIGTSTP) == 0) {
+                // Print a message indicating Ctrl+Z was pressed
+                printf("Ctrl+Z: Pushed running process with PID %d to background\n", foregroundPid);
+
+                // Update the state of the foreground process to "Stopped"
+                updateProcessState(foregroundPid, "Stopped");
+
+                // Run the foreground process in the background
+                if (setpgid(foregroundPid, foregroundPid) == 0) {
+                    // Successfully moved to the background
+                } else {
+                    perror("Ctrl+Z: Error moving the process to the background");
+                }
+            } else {
+                perror("Ctrl+Z: Error sending SIGTSTP signal");
+            }
+        }
+    } else {
+        // No foreground process running, so Ctrl+Z has no effect
+        printf("Ctrl+Z: No foreground process running to stop.\n");
+    }
+}
+
+
+int main() {
+    // Initialize the signal handlers
+    signal(SIGINT, SIG_IGN); // Ignore Ctrl+C
+    signal(SIGTSTP, SIG_IGN); // Ignore Ctrl+Z
+
     global_home = initializeGlobalHome();
     loadPastEvents();
     printWyshArt();
 
-    signal(SIGINT, handleCtrlC);
     int backgroundProcessStatus = 0;
 
-    while (1)
-    {
+    while (1) {
         prompt(backgroundProcessStatus);
+
         char input[MAX_INPUT_LENGTH];
-        fgets(input, MAX_INPUT_LENGTH, stdin);
+        if (fgets(input, MAX_INPUT_LENGTH, stdin) == NULL) {
+            // Handle Ctrl+D (EOF)
+            printf("Ctrl+D received, logging out...\n");
+            break; // Exit the shell
+        }
 
         input[strcspn(input, "\n")] = '\0';
 
         addToPastEvents(input);
         printf(RESET_COLOR);
 
-        if (strcmp(input, "exit") == 0)
-        {
-            for (int i = 0; i < num_past_events; i++)
-            {
+        if (strcmp(input, "exit") == 0) {
+            for (int i = 0; i < num_past_events; i++) {
                 free(past_events[i]);
             }
             return 0;
-        }
-        else
-        {
+        } else {
             handleInput(input);
             backgroundProcessStatus = 0;
         }
-//        viewProcesses();
     }
+
+    // Clean up resources
+    freeProcessList();
+    free(global_home);
+    free(prev_directory);
+    for (int i = 0; i < num_past_events; i++) {
+        free(past_events[i]);
+    }
+
+    return 0;
 }

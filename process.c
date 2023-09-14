@@ -1,6 +1,16 @@
 #include "headers.h"
 #include "tools.h"
 
+void freeProcessList() {
+    struct ProcessNode *current = process_list_head;
+    while (current != NULL) {
+        struct ProcessNode *next = current->next;
+        free(current);
+        current = next;
+    }
+}
+
+
 int processExists(int pid) {
     struct ProcessNode *current = process_list_head;
     while (current != NULL) {

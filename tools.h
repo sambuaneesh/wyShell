@@ -35,4 +35,6 @@ int processExists(int pid);
 
 void updateProcessState(int pid, const char *state);
 
+void freeProcessList();
+
 #endif
