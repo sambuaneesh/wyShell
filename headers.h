@@ -47,7 +47,8 @@ typedef struct
 
 typedef struct {
     pid_t pid;
-    char command[256];
+    char command[256];         // Stores the first parameter of the command
+    char complete_command[512]; // Stores the complete command including arguments
     int is_background;
     int exit_status; // Store the exit status of terminated processes
     char state[16];

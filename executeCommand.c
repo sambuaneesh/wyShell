@@ -1,26 +1,21 @@
 #include "headers.h"
 #include "tools.h"
 
-
-void executeCommand(char *command, int isBackground)
-{
+void executeCommand(char *command, int isBackground) {
     signal(SIGCHLD, sigchld_handler);
     int hasPipe = 0;
     int hasIO = 0;
-//    check if there is a pipe
+
+    // Check if there is a pipe
     if (strchr(command, '|') != NULL) {
         hasPipe = 1;
     }
-//    check if there is IO redirection
+
+    // Check if there is IO redirection
     if (strchr(command, '<') != NULL || strchr(command, '>') != NULL) {
         hasIO = 1;
     }
-//    if (strchr(command, '<') != NULL || strchr(command, '>')) {
-//        ioRedirection(command);
-//        return;
-//    }
-//    if (pipeCommand(command))
-//        return;
+
     if (hasPipe && hasIO) {
         ioPipe(command);
         return;
@@ -31,57 +26,56 @@ void executeCommand(char *command, int isBackground)
         ioRedirection(command);
         return;
     }
+
     Command *cmd = parseCommand(command, " \t");
-    if (strcmp(cmd->argv[0], "warp") == 0)
-    {
+
+    // Build the complete command string by concatenating all arguments
+    char completeCommand[512]; // Adjust the size as needed
+    completeCommand[0] = '\0'; // Initialize as an empty string
+    for (int i = 0; i < cmd->argc; i++) {
+        strcat(completeCommand, cmd->argv[i]);
+        if (i < cmd->argc - 1) {
+            strcat(completeCommand, " "); // Add a space between arguments
+        }
+    }
+
+    if (strcmp(cmd->argv[0], "warp") == 0) {
         warp(cmd);
-    }
-    else if (strcmp(cmd->argv[0], "proclore") == 0)
-    {
+    } else if (strcmp(cmd->argv[0], "proclore") == 0) {
         proclore(cmd);
-    }
-    else if (strcmp(cmd->argv[0], "peek") == 0)
-    {
+    } else if (strcmp(cmd->argv[0], "peek") == 0) {
         peek(cmd);
-    }
-    else if (strcmp(cmd->argv[0], "seek") == 0)
-    {
+    } else if (strcmp(cmd->argv[0], "seek") == 0) {
         seek(cmd);
-    }
-    else if (strcmp(cmd->argv[0], "pastevents") == 0)
-    {
+    } else if (strcmp(cmd->argv[0], "pastevents") == 0) {
         pastevents(cmd);
     } else if (strcmp(cmd->argv[0], "iMan") == 0) {
         iMan(cmd);
     } else if (strcmp(cmd->argv[0], "activities") == 0) {
         printActivities();
-    }
-    else
-    {
+    } else if (strcmp(cmd->argv[0], "fg") == 0 || strcmp(cmd->argv[0], "bg") == 0) {
+        handleFgBgCommand(cmd);
+    } else {
         pid_t pid = fork();
-        if (pid == 0)
-        {
+        if (pid == 0) {
             // Child process
-            if (execvp(cmd->argv[0], cmd->argv) == -1)
-            {
-                // printf("Invalid command!\n");
+            if (execvp(cmd->argv[0], cmd->argv) == -1) {
                 fprintf(stderr, "ERROR: '%s' is not a valid command\n", cmd->argv[0]);
                 exit(EXIT_FAILURE);
             }
-        }
-        else if (pid > 0)
-        {
+        } else if (pid > 0) {
             // Parent process
             ProcessInfo process_info;
             process_info.pid = pid;
             snprintf(process_info.command, sizeof(process_info.command), "%s", cmd->argv[0]);
+            snprintf(process_info.complete_command, sizeof(process_info.complete_command), "%s",
+                     completeCommand); // Store complete command
             process_info.is_background = isBackground;
 
             // Insert process info into the list for both foreground and background
             insertProcess(process_info);
 
-            if (!isBackground)
-            {
+            if (!isBackground) {
                 // Foreground process
                 int status;
                 struct timeval start_time, end_time;
@@ -93,8 +87,7 @@ void executeCommand(char *command, int isBackground)
                 long elapsed_time = (end_time.tv_sec - start_time.tv_sec) * 1000 +
                                     (end_time.tv_usec - start_time.tv_usec) / 1000;
 
-                if (elapsed_time > 2000) // If time taken > 2 seconds
-                {
+                if (elapsed_time > 2000) { // If time taken > 2 seconds
                     printf("(%s : %lds) ", cmd->argv[0], elapsed_time / 1000);
                 }
 
@@ -107,16 +100,12 @@ void executeCommand(char *command, int isBackground)
                     }
                     current = current->next;
                 }
-            }
-            else
-            {
+            } else {
                 // Background process
                 printf("[%d]\n", pid);
                 fflush(stdout);
             }
-        }
-        else
-        {
+        } else {
             printf("Error forking!\n");
         }
     }

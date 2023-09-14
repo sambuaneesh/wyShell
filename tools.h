@@ -25,4 +25,10 @@ void iMan(Command *cmd);
 
 void printActivities();
 
+void handleFgBgCommand(Command *cmd);
+
+pid_t deleteLatestProcess();
+
+void copyProcessInfoToLatest(pid_t pid);
+
 #endif
