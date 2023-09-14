@@ -19,11 +19,9 @@ void viewProcesses() {
 }
 
 
-// Function to print activities
 void printActivities() {
     struct ProcessNode *current = process_list_head;
 
-//    printf("Activities:\n");
 
     while (current != NULL) {
         printf("[%d] : %s - %s\n", current->process_info.pid, current->process_info.command,

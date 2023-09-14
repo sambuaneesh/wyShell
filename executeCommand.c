@@ -6,12 +6,10 @@ void executeCommand(char *command, int isBackground) {
     int hasPipe = 0;
     int hasIO = 0;
 
-    // Check if there is a pipe
     if (strchr(command, '|') != NULL) {
         hasPipe = 1;
     }
 
-    // Check if there is IO redirection
     if (strchr(command, '<') != NULL || strchr(command, '>') != NULL) {
         hasIO = 1;
     }
@@ -29,13 +27,12 @@ void executeCommand(char *command, int isBackground) {
 
     Command *cmd = parseCommand(command, " \t");
 
-    // Build the complete command string by concatenating all arguments
-    char completeCommand[512]; // Adjust the size as needed
-    completeCommand[0] = '\0'; // Initialize as an empty string
+    char completeCommand[512];
+    completeCommand[0] = '\0';
     for (int i = 0; i < cmd->argc; i++) {
         strcat(completeCommand, cmd->argv[i]);
         if (i < cmd->argc - 1) {
-            strcat(completeCommand, " "); // Add a space between arguments
+            strcat(completeCommand, " ");
         }
     }
 
@@ -63,15 +60,11 @@ void executeCommand(char *command, int isBackground) {
         } else {
             int pid, signal_number;
             if (sscanf(cmd->argv[1], "%d", &pid) == 1 && sscanf(cmd->argv[2], "%d", &signal_number) == 1) {
-                // Check if the process with the given PID exists
                 if (processExists(pid)) {
-                    // Calculate the actual signal number based on modulo 32
                     signal_number %= 32;
-                    // Send the specified signal to the process
                     if (kill(pid, signal_number) == 0) {
                         printf("Sent signal %d to PID %d\n", signal_number, pid);
 
-                        // Update the state of the process to "Stopped" if the signal is SIGSTOP
                         if (signal_number == SIGSTOP) {
                             updateProcessState(pid, "Stopped");
                         } else if (signal_number == SIGKILL) {
