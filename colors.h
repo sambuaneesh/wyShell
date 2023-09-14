@@ -1,6 +1,7 @@
 #ifndef COLORS_H_
 #define COLORS_H_
 
+#define RED_COLOR "\033[1;31m"
 #define RESET_COLOR "\033[0m"
 #define BLUE_COLOR "\033[34m"
 #define GREEN_COLOR "\033[32m"

@@ -66,4 +66,7 @@ extern struct ProcessNode *process_list_head;
 
 #include "prompt.h"
 #include "process.h"
+
+#define printError(fmt, ...) fprintf(stderr, "\033[1;31m" fmt "\033[0m", ##__VA_ARGS__)
+
 #endif

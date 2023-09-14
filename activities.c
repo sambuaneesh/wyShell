@@ -5,7 +5,7 @@ void viewProcesses() {
     struct ProcessNode *current = process_list_head;
 
     if (current == NULL) {
-        printf("No processes to display.\n");
+        printError("No processes to display.\n");
         return;
     }
 
@@ -32,7 +32,7 @@ void printActivities() {
     }
 
     if (process_list_head == NULL) {
-        printf("No processes in the activities list.\n");
+        printError("No processes in the activities list.\n");
     }
 }
 

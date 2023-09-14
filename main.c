@@ -16,7 +16,7 @@ void handleCtrlC(int signal) {
         // Send the SIGINT signal to the foreground process
         if (kill(foregroundPid, SIGINT) == 0) {
             // Print a message indicating Ctrl+C was pressed
-            printf("Terminated process with PID %d\n", foregroundPid);
+            printError("Terminated process with PID %d\n", foregroundPid);
 
             // Update the state of the foreground process to "Terminated"
             updateProcessState(foregroundPid, "Terminated");
@@ -35,12 +35,12 @@ void handleCtrlZ(int signal) {
 
         if (foregroundPid == getpid()) {
             // The foreground process is the shell itself, so Ctrl+Z has no effect
-            printf("Ctrl+Z: No foreground process running to stop.\n");
+            printError("Ctrl+Z: No foreground process running to stop.\n");
         } else {
             // Send the SIGTSTP signal to the foreground process
             if (kill(foregroundPid, SIGTSTP) == 0) {
                 // Print a message indicating Ctrl+Z was pressed
-                printf("Ctrl+Z: Pushed running process with PID %d to background\n", foregroundPid);
+                printError("Ctrl+Z: Pushed running process with PID %d to background\n", foregroundPid);
 
                 // Update the state of the foreground process to "Stopped"
                 updateProcessState(foregroundPid, "Stopped");
@@ -49,15 +49,15 @@ void handleCtrlZ(int signal) {
                 if (setpgid(foregroundPid, foregroundPid) == 0) {
                     // Successfully moved to the background
                 } else {
-                    perror("Ctrl+Z: Error moving the process to the background");
+                    printError("Ctrl+Z: Error moving the process to the background");
                 }
             } else {
-                perror("Ctrl+Z: Error sending SIGTSTP signal");
+                printError("Ctrl+Z: Error sending SIGTSTP signal");
             }
         }
     } else {
         // No foreground process running, so Ctrl+Z has no effect
-        printf("Ctrl+Z: No foreground process running to stop.\n");
+        printError("Ctrl+Z: No foreground process running to stop.\n");
     }
 }
 

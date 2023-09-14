@@ -58,7 +58,7 @@ void changeBackgroundProcessState(int pid) {
     }
 
     // If the process with the given PID was not found
-    printf("No such process found.\n");
+    printError("No such process found.\n");
 }
 
 
@@ -66,7 +66,7 @@ void changeBackgroundProcessState(int pid) {
 void handleFgBgCommand(Command *cmd) {
     // Ensure that there is a second argument (PID) for the command
     if (cmd->argc < 2) {
-        printf("Invalid command format. Usage: fg <pid> or bg <pid>\n");
+        printError("Invalid command format. Usage: fg <pid> or bg <pid>\n");
         return;
     }
 
@@ -81,11 +81,11 @@ void handleFgBgCommand(Command *cmd) {
             changeBackgroundProcessState(pid);
         } else {
             // Invalid command format
-            printf("Invalid command format. Usage: fg <pid> or bg <pid>\n");
+            printError("Invalid command format. Usage: fg <pid> or bg <pid>\n");
         }
     } else {
         // Invalid PID
-        printf("Invalid PID format. Usage: fg <pid> or bg <pid>\n");
+        printError("Invalid PID format. Usage: fg <pid> or bg <pid>\n");
     }
 }
 

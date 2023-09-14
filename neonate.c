@@ -26,7 +26,7 @@ void enableRawMode() {
 
 void neonate(Command *cmd) {
     if (cmd->argc != 3 || strcmp(cmd->argv[1], "-n") != 0) {
-        fprintf(stderr, "Usage: %s -n [time_arg]\n", cmd->argv[0]);
+        printError("Usage: %s -n [time_arg]\n", cmd->argv[0]);
         return; // Exit with no effect if the command is not properly formatted
     }
 
@@ -38,7 +38,7 @@ void neonate(Command *cmd) {
         // Use the `ps` command to get the latest running process ID
         FILE *ps = popen("ps -e -o pid --sort=-start_time | awk 'NR==2{print $1}'", "r");
         if (ps == NULL) {
-            perror("Error executing ps command");
+            printError("Error executing ps command");
             return;
         }
 
@@ -61,7 +61,7 @@ void neonate(Command *cmd) {
 
         int result = select(STDIN_FILENO + 1, &fds, NULL, NULL, &tv);
         if (result == -1) {
-            perror("select");
+            printError("select");
         } else if (result > 0 && FD_ISSET(STDIN_FILENO, &fds)) {
             // Input is available, read it
             if (read(STDIN_FILENO, &c, 1) == 1) {

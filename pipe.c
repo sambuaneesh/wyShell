@@ -7,7 +7,7 @@ int pipeCommand(char *cmd) {
 
 //    return error if there is nothing to the left or to the right of a pipe
     if (cmd[0] == '|' || cmd[strlen(cmd) - 1] == '|') {
-        fprintf(stderr, "ERROR: Invalid use of pipe\n");
+        printError("ERROR: Invalid use of pipe\n");
         return 1;
     }
 
@@ -29,7 +29,7 @@ int pipeCommand(char *cmd) {
 
     for (int i = 0; i < num_commands - 1; i++) {
         if (pipe(pipes[i]) == -1) {
-            perror("pipe");
+            printError("pipe");
             exit(EXIT_FAILURE);
         }
     }
@@ -37,7 +37,7 @@ int pipeCommand(char *cmd) {
     for (int i = 0; i < num_commands; i++) {
         pid_t pid = fork();
         if (pid == -1) {
-            perror("fork");
+            printError("fork");
             exit(EXIT_FAILURE);
         } else if (pid == 0) {
             // Child process
@@ -56,7 +56,7 @@ int pipeCommand(char *cmd) {
 
             Command *cmd = parseCommand(commands[i], " \t");
             if (execvp(cmd->argv[0], cmd->argv) == -1) {
-                fprintf(stderr, "ERROR: '%s' is not a valid command\n", cmd->argv[0]);
+                printError("ERROR: '%s' is not a valid command\n", cmd->argv[0]);
                 exit(EXIT_FAILURE);
             }
         } else {
@@ -94,7 +94,7 @@ int ioPipe(char *cmd) {
         input_file = strtok(input_file + 1, " \t"); // Get the input file name
         input_fd = open(input_file, O_RDONLY);
         if (input_fd == -1) {
-            perror("open");
+            printError("open");
             return 1;
         }
     }
@@ -106,7 +106,7 @@ int ioPipe(char *cmd) {
         output_file = strtok(output_file + 2, " \t"); // Get the output file name
         output_fd = open(output_file, O_WRONLY | O_CREAT | O_APPEND, 0666);
         if (output_fd == -1) {
-            perror("open");
+            printError("open");
             return 1;
         }
         append_flag = 1; // Set the append flag
@@ -117,7 +117,7 @@ int ioPipe(char *cmd) {
             output_file = strtok(output_file + 1, " \t"); // Get the output file name
             output_fd = open(output_file, O_WRONLY | O_CREAT | O_TRUNC, 0666);
             if (output_fd == -1) {
-                perror("open");
+                printError("open");
                 return 1;
             }
         }
@@ -141,7 +141,7 @@ int ioPipe(char *cmd) {
 
     for (int i = 0; i < num_commands - 1; i++) {
         if (pipe(pipes[i]) == -1) {
-            perror("pipe");
+            printError("pipe");
             exit(EXIT_FAILURE);
         }
     }
@@ -149,7 +149,7 @@ int ioPipe(char *cmd) {
     for (int i = 0; i < num_commands; i++) {
         pid_t pid = fork();
         if (pid == -1) {
-            perror("fork");
+            printError("fork");
             exit(EXIT_FAILURE);
         } else if (pid == 0) {
             // Child process
@@ -180,7 +180,7 @@ int ioPipe(char *cmd) {
 
             Command *cmd = parseCommand(commands[i], " \t");
             if (execvp(cmd->argv[0], cmd->argv) == -1) {
-                fprintf(stderr, "ERROR: '%s' is not a valid command\n", cmd->argv[0]);
+                printError("ERROR: '%s' is not a valid command\n", cmd->argv[0]);
                 exit(EXIT_FAILURE);
             }
         } else {

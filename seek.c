@@ -13,7 +13,7 @@ void search(const char *target, const char *directory, int isDirFlag, int isFile
     DIR *dir = opendir(directory);
     if (dir == NULL)
     {
-        perror("opendir");
+        printError("opendir");
         return;
     }
 
@@ -32,7 +32,7 @@ void search(const char *target, const char *directory, int isDirFlag, int isFile
         struct stat entryStat;
         if (stat(entryPath, &entryStat) == -1)
         {
-            perror("stat");
+            printError("stat");
             continue;
         }
 
@@ -46,13 +46,13 @@ void search(const char *target, const char *directory, int isDirFlag, int isFile
                 {
                     if (access(entryPath, X_OK) != 0)
                     {
-                        perror("Missing permissions for task!");
+                        printError("Missing permissions for task!");
                         closedir(dir);
                         return;
                     }
                     if (chdir(entryPath) == -1)
                     {
-                        perror("chdir");
+                        printError("chdir");
                         closedir(dir);
                         return;
                     }
@@ -71,14 +71,14 @@ void search(const char *target, const char *directory, int isDirFlag, int isFile
                 {
                     if (access(entryPath, R_OK) != 0)
                     {
-                        perror("Missing permissions for task!");
+                        printError("Missing permissions for task!");
                         closedir(dir);
                         return;
                     }
                     FILE *file = fopen(entryPath, "r");
                     if (file == NULL)
                     {
-                        perror("fopen");
+                        printError("fopen");
                     }
                     else
                     {
@@ -100,7 +100,7 @@ void search(const char *target, const char *directory, int isDirFlag, int isFile
 
     if (topLevelSearch && !matchFound && isDirFlag)
     {
-        printf("No match found!\n");
+        printError("No match found!\n");
     }
 }
 
@@ -109,7 +109,7 @@ void seek(Command *cmd)
 {
     if (cmd->argc < 2)
     {
-        printf("Usage: seek <flags> <search> <target_directory>\n");
+        printError("Usage: seek <flags> <search> <target_directory>\n");
         return;
     }
 
@@ -164,14 +164,14 @@ void seek(Command *cmd)
         }
         else
         {
-            printf("Invalid usage!\n");
+            printError("Invalid usage!\n");
             return;
         }
     }
 
     if (hasInvalidFlags)
     {
-        printf("Invalid flags!\n");
+        printError("Invalid flags!\n");
         return;
     }
 

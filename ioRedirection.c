@@ -13,7 +13,7 @@ int ioRedirectionHelper(char *cmd) {
         input_file = strtok(input_file + 1, " \t"); // Get the input file name
         input_fd = open(input_file, O_RDONLY);
         if (input_fd == -1) {
-            perror("open");
+            printError("open");
             return 1;
         }
     }
@@ -25,7 +25,7 @@ int ioRedirectionHelper(char *cmd) {
         output_file = strtok(output_file + 2, " \t"); // Get the output file name
         output_fd = open(output_file, O_WRONLY | O_CREAT | O_APPEND, 0666);
         if (output_fd == -1) {
-            perror("open");
+            printError("open");
             return 1;
         }
         append_flag = 1; // Set the append flag
@@ -36,7 +36,7 @@ int ioRedirectionHelper(char *cmd) {
             output_file = strtok(output_file + 1, " \t"); // Get the output file name
             output_fd = open(output_file, O_WRONLY | O_CREAT | O_TRUNC, 0666);
             if (output_fd == -1) {
-                perror("open");
+                printError("open");
                 return 1;
             }
         }
@@ -74,7 +74,7 @@ int ioRedirectionHelper(char *cmd) {
     // Execute the command
     execvp(parts[0], parts);
     // If execvp fails, perror will be called, and you can handle the error accordingly.
-    perror("Error executing command");
+    printError("Error executing command");
     return 1;
 }
 
@@ -88,6 +88,6 @@ void ioRedirection(char *cmd) {
         int status;
         waitpid(pid, &status, 0);
     } else {
-        perror("Error forking");
+        printError("Error forking");
     }
 }

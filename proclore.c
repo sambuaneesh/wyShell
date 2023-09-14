@@ -8,7 +8,7 @@ void printProcessInfo(pid_t pid)
     FILE *status_file = fopen(proc_path, "r");
     if (status_file == NULL)
     {
-        perror("Failed to open status file");
+        printError("Failed to open status file");
         return;
     }
 
@@ -64,11 +64,11 @@ void proclore(Command *cmd)
         }
         else
         {
-            printf("Invalid usage. Usage: proclore [pid]\n");
+            printError("Invalid usage. Usage: proclore [pid]\n");
         }
     }
     else
     {
-        printf("Invalid usage. Usage: proclore [pid]\n");
+        printError("Invalid usage. Usage: proclore [pid]\n");
     }
 }

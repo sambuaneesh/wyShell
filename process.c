@@ -39,7 +39,7 @@ void updateProcessState(int pid, const char *state) {
 void insertProcess(ProcessInfo new_process) {
     struct ProcessNode *new_node = malloc(sizeof(struct ProcessNode));
     if (new_node == NULL) {
-        perror("malloc");
+        printError("malloc");
         exit(EXIT_FAILURE);
     }
 
@@ -65,7 +65,7 @@ void insertProcess(ProcessInfo new_process) {
 // Function to delete the latest process from the process list and return its PID
 pid_t deleteLatestProcess() {
     if (process_list_head == NULL) {
-        printf("Process list is empty.\n");
+        printError("Process list is empty.\n");
         return -1; // Return an invalid PID
     }
 

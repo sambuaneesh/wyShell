@@ -59,7 +59,7 @@ void executeCommand(char *command, int isBackground) {
         handleFgBgCommand(cmd);
     } else if (strcmp(cmd->argv[0], "ping") == 0) {
         if (cmd->argc < 3) {
-            printf("Invalid command format. Usage: ping <pid> <signal_number>\n");
+            printError("Invalid command format. Usage: ping <pid> <signal_number>\n");
         } else {
             int pid, signal_number;
             if (sscanf(cmd->argv[1], "%d", &pid) == 1 && sscanf(cmd->argv[2], "%d", &signal_number) == 1) {
@@ -78,13 +78,13 @@ void executeCommand(char *command, int isBackground) {
                             updateProcessState(pid, "Stopped");
                         }
                     } else {
-                        perror("Error sending signal");
+                        printError("Error sending signal");
                     }
                 } else {
-                    printf("No such process found.\n");
+                    printError("No such process found.\n");
                 }
             } else {
-                printf("Invalid PID or signal number format.\n");
+                printError("Invalid PID or signal number format.\n");
             }
         }
     } else {
@@ -92,7 +92,7 @@ void executeCommand(char *command, int isBackground) {
         if (pid == 0) {
             // Child process
             if (execvp(cmd->argv[0], cmd->argv) == -1) {
-                fprintf(stderr, "ERROR: '%s' is not a valid command\n", cmd->argv[0]);
+                printError("ERROR: '%s' is not a valid command\n", cmd->argv[0]);
                 exit(EXIT_FAILURE);
             }
         } else if (pid > 0) {
@@ -139,7 +139,7 @@ void executeCommand(char *command, int isBackground) {
                 fflush(stdout);
             }
         } else {
-            printf("Error forking!\n");
+            printError("Error forking!\n");
         }
     }
     freeCommand(cmd);

@@ -30,7 +30,7 @@ void listWithOptions(ListOptions options)
     DIR *dir = opendir(options.directory);
     if (dir == NULL)
     {
-        perror("opendir error");
+        printError("opendir error");
         return;
     }
 
@@ -49,7 +49,7 @@ void listWithOptions(ListOptions options)
     char **entries = (char **)malloc(num_entries * sizeof(char *));
     if (entries == NULL)
     {
-        perror("memory allocation error");
+        printError("memory allocation error");
         closedir(dir);
         return;
     }
@@ -102,7 +102,7 @@ void listDetailedDirectory(const char *directory)
     DIR *dir = opendir(directory);
     if (dir == NULL)
     {
-        perror("opendir error");
+        printError("opendir error");
         return;
     }
 
@@ -116,7 +116,7 @@ void listDetailedDirectory(const char *directory)
         struct stat file_stat;
         if (stat(filepath, &file_stat) < 0)
         {
-            perror("stat error");
+            printError("stat error");
             closedir(dir);
             return;
         }
@@ -140,7 +140,7 @@ void listDetailedDirectory(const char *directory)
         struct passwd *pw = getpwuid(file_stat.st_uid);
         if (pw == NULL)
         {
-            perror("getpwuid error");
+            printError("getpwuid error");
             closedir(dir);
             return;
         }
@@ -149,7 +149,7 @@ void listDetailedDirectory(const char *directory)
         struct group *gr = getgrgid(file_stat.st_gid);
         if (gr == NULL)
         {
-            perror("getgrgid error");
+            printError("getgrgid error");
             closedir(dir);
             return;
         }
@@ -182,7 +182,7 @@ void listDetailedDirectory(const char *directory)
 
     if (closedir(dir) != 0)
     {
-        perror("closedir error");
+        printError("closedir error");
     }
 }
 void peek(Command *cmd)
@@ -213,7 +213,7 @@ void peek(Command *cmd)
         char current_directory[DEF_SIZE];
         if (getcwd(current_directory, sizeof(current_directory)) == NULL)
         {
-            perror("getcwd error");
+            printError("getcwd error");
             return;
         }
 

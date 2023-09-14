@@ -77,7 +77,7 @@ void purgePastEvents()
 void pastevents(Command *cmd)
 {
     if (cmd->argc > 3)
-        fprintf(stderr, "pastevents: Too many arguments\n");
+        printError("pastevents: Too many arguments\n");
     else if (cmd->argc == 1)
         displayPastEvents();
     else if (strcmp(cmd->argv[1], "purge") == 0)
@@ -92,5 +92,5 @@ void pastevents(Command *cmd)
         addToPastEvents(temp);
     }
     else
-        fprintf(stderr, "pastevents: Invalid Usage\n");
+        printError("pastevents: Invalid Usage\n");
 }

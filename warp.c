@@ -4,14 +4,14 @@ void warpHelper(char *directory)
 {
     if (directory == NULL)
     {
-        fprintf(stderr, "warp: missing argument\n");
+        printError("warp: missing argument\n");
         return;
     }
 
     char current_directory[DEF_SIZE];
     if (getcwd(current_directory, sizeof(current_directory)) == NULL)
     {
-        perror("getcwd error");
+        printError("getcwd error");
         return;
     }
 
@@ -19,7 +19,7 @@ void warpHelper(char *directory)
     {
         if (prev_directory == NULL)
         {
-            fprintf(stderr, "warp: no previous directory\n");
+            printError("warp: no previous directory\n");
             return;
         }
         directory = prev_directory;
@@ -34,21 +34,21 @@ void warpHelper(char *directory)
 
     if (chdir(directory) != 0)
     {
-        perror("warp error");
+        printError("warp error");
     }
     else
     {
         prev_directory = strdup(current_directory);
         if (prev_directory == NULL)
         {
-            perror("Memory allocation error");
+            printError("Memory allocation error");
             exit(EXIT_FAILURE);
         }
     }
     char working_directory[DEF_SIZE];
     if (getcwd(working_directory, sizeof(working_directory)) == NULL)
     {
-        perror("getcwd error");
+        printError("getcwd error");
         return;
     }
     printf("%s\n", working_directory);
@@ -58,7 +58,7 @@ void warp(Command *cmd)
 {
     if (cmd->argc == 0)
     {
-        fprintf(stderr, "warp: missing argument\n");
+        printError("warp: missing argument\n");
         return;
     }
     else if (cmd->argc == 1)

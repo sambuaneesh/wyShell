@@ -7,7 +7,7 @@ char *getUsername()
     pw = getpwuid(uid);
     if (!pw)
     {
-        fprintf(stderr, "Cannot get username");
+        printError("Cannot get username");
         exit(EXIT_FAILURE);
     }
     return pw->pw_name;
@@ -17,7 +17,7 @@ void getHostname(char *hostname)
 {
     if (gethostname(hostname, DEF_SIZE))
     {
-        fprintf(stderr, "Cannot get hostname");
+        printError("Cannot get hostname");
         exit(EXIT_FAILURE);
     }
 }
@@ -26,7 +26,7 @@ void getCurrentDirectory(char *cwd)
 {
     if (!getcwd(cwd, DEF_SIZE))
     {
-        fprintf(stderr, "Cannot get current working directory");
+        printError("Cannot get current working directory");
     }
 }
 

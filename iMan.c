@@ -9,7 +9,7 @@ char *httpGet(const char *url) {
     char host[256];
     char path[256];
     if (sscanf(url, "http://%255[^/]/%255[^\n]", host, path) != 2) {
-        fprintf(stderr, "Invalid URL format\n");
+        printError("Invalid URL format\n");
         return NULL;
     }
 
@@ -19,21 +19,21 @@ char *httpGet(const char *url) {
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
     if (getaddrinfo(host, "http", &hints, &res) != 0) {
-        fprintf(stderr, "Failed to resolve host\n");
+        printError("Failed to resolve host\n");
         return NULL;
     }
 
     // Create a socket
     int sockfd = socket(res->ai_family, res->ai_socktype, 0);
     if (sockfd == -1) {
-        perror("socket");
+        printError("socket");
         freeaddrinfo(res);
         return NULL;
     }
 
     // Connect to the server
     if (connect(sockfd, res->ai_addr, res->ai_addrlen) == -1) {
-        perror("connect");
+        printError("connect");
         close(sockfd);
         freeaddrinfo(res);
         return NULL;
@@ -43,7 +43,7 @@ char *httpGet(const char *url) {
     char request[512];
     sprintf(request, "GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n", path, host);
     if (send(sockfd, request, strlen(request), 0) == -1) {
-        perror("send");
+        printError("send");
         close(sockfd);
         freeaddrinfo(res);
         return NULL;
@@ -66,7 +66,7 @@ char *httpGet(const char *url) {
         response = realloc(response, new_size);
 
         if (response == NULL) {
-            perror("realloc");
+            printError("realloc");
             free(response);
             close(sockfd);
             freeaddrinfo(res);
@@ -104,7 +104,7 @@ int noCommandFound(const char *text) {
 
 void iMan(Command *cmd) {
     if (cmd->argc != 2) {
-        fprintf(stderr, "ERROR\n\tUsage: iMan <command>\n");
+        printError("ERROR\n\tUsage: iMan <command>\n");
         return;
     }
     char *command = cmd->argv[1];
@@ -136,11 +136,11 @@ void iMan(Command *cmd) {
                 }
             }
         } else {
-            fprintf(stderr, "ERROR\n\tSection not found\n");
+            printError("ERROR\n\tSection not found\n");
         }
 
         free(manPageHTML);
     } else {
-        printf("Failed to retrieve the man page HTML\n");
+        printError("Failed to retrieve the man page HTML\n");
     }
 }
