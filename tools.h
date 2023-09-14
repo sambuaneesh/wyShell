@@ -27,8 +27,12 @@ void printActivities();
 
 void handleFgBgCommand(Command *cmd);
 
-pid_t deleteLatestProcess();
+//pid_t deleteLatestProcess();
 
 void copyProcessInfoToLatest(pid_t pid);
+
+int processExists(int pid);
+
+void updateProcessState(int pid, const char *state);
 
 #endif

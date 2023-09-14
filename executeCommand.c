@@ -55,6 +55,36 @@ void executeCommand(char *command, int isBackground) {
         printActivities();
     } else if (strcmp(cmd->argv[0], "fg") == 0 || strcmp(cmd->argv[0], "bg") == 0) {
         handleFgBgCommand(cmd);
+    } else if (strcmp(cmd->argv[0], "ping") == 0) {
+        if (cmd->argc < 3) {
+            printf("Invalid command format. Usage: ping <pid> <signal_number>\n");
+        } else {
+            int pid, signal_number;
+            if (sscanf(cmd->argv[1], "%d", &pid) == 1 && sscanf(cmd->argv[2], "%d", &signal_number) == 1) {
+                // Check if the process with the given PID exists
+                if (processExists(pid)) {
+                    // Calculate the actual signal number based on modulo 32
+                    signal_number %= 32;
+                    // Send the specified signal to the process
+                    if (kill(pid, signal_number) == 0) {
+                        printf("Sent signal %d to PID %d\n", signal_number, pid);
+
+                        // Update the state of the process to "Stopped" if the signal is SIGSTOP
+                        if (signal_number == SIGSTOP) {
+                            updateProcessState(pid, "Stopped");
+                        } else if (signal_number == SIGKILL) {
+                            updateProcessState(pid, "Stopped");
+                        }
+                    } else {
+                        perror("Error sending signal");
+                    }
+                } else {
+                    printf("No such process found.\n");
+                }
+            } else {
+                printf("Invalid PID or signal number format.\n");
+            }
+        }
     } else {
         pid_t pid = fork();
         if (pid == 0) {

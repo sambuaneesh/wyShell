@@ -1,6 +1,30 @@
 #include "headers.h"
 #include "tools.h"
 
+int processExists(int pid) {
+    struct ProcessNode *current = process_list_head;
+    while (current != NULL) {
+        if (current->process_info.pid == pid) {
+            return 1;
+        }
+        current = current->next;
+    }
+    return 0;
+}
+
+void updateProcessState(int pid, const char *state) {
+    struct ProcessNode *current = process_list_head;
+    while (current != NULL) {
+        if (current->process_info.pid == pid) {
+            strncpy(current->process_info.state, state, sizeof(current->process_info.state) - 1);
+            current->process_info.state[sizeof(current->process_info.state) - 1] = '\0'; // Ensure null-termination
+            break; // Found and updated, exit loop
+        }
+        current = current->next;
+    }
+}
+
+
 // Function to insert a process into the linked list in lexicographic order
 void insertProcess(ProcessInfo new_process) {
     struct ProcessNode *new_node = malloc(sizeof(struct ProcessNode));
