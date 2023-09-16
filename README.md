@@ -1,6 +1,5 @@
 # Welcome to WyShell
 
-Welcome to WyShell
 [Jump to Table of Contents](#table-of-contents)
 
 ## Getting Started
@@ -63,6 +62,8 @@ This command will remove the WyShell executable, the `pastevents.txt` file, and 
     - [**System Commands**](#system-commands)
       - [Foreground Process](#foreground-process)
       - [Background Process](#background-process)
+      - [`ping <pid> <signal_number>`](#ping-pid-signal_number)
+      - [Ctrl - C, Ctrl - D, Ctrl - Z](#ctrl---c-ctrl---d-ctrl---z)
     - [`proclore [pid]`](#proclore-pid)
     - [`seek [flags] [search] [target_directory]`](#seek-flags-search-target_directory)
   - [Processes, Files, and Miscellaneous](#processes-files-and-miscellaneous)
@@ -169,6 +170,24 @@ Background processes run asynchronously. Their PIDs are displayed in the termina
 # Executes sleep command in the background
 ```
 
+#### `ping <pid> <signal_number>`
+
+The `ping` command is used to send signals to processes. Take the pid of a process and send a signal to it corresponding to the provided signal number. Print error “No such process found” if the process with the given pid does not exist.
+
+**Example:**
+```sh
+<JohnDoe@SYS:~> ping 221 9
+Sent signal 9 to process with pid 221
+<JohnDoe@SYS:~> ping 430 41
+Sent signal 9 to process with pid 430
+```
+
+#### Ctrl - C, Ctrl - D, Ctrl - Z
+
+- **Ctrl - C:** Interrupts any currently running foreground process by sending it the SIGINT signal. It has no effect if no foreground process is currently running.
+- **Ctrl - D:** Logs out of your shell (after killing all processes) while having no effect on the actual terminal.
+- **Ctrl - Z:** Pushes the (if any) running foreground process to the background and changes its state from “Running” to “Stopped”. It has no effect on the shell if no foreground process is running.
+
 ### `proclore [pid]`
 
 The `proclore` command provides information about a process with the given PID.
@@ -176,7 +195,9 @@ The `proclore` command provides information about a process with the given PID.
 **Example:**
 ```sh
 <JohnDoe@SYS:~> proclore
-# Displays information about the shell process
+# Displays information about the shell
+
+ process
 <JohnDoe@SYS:~> proclore 301
 # Displays information about the process with PID 301
 ```
@@ -265,3 +286,5 @@ The `iMan` command fetches man pages from http://man.he.net/ using sockets.
 <JohnDoe@SYS:~> iMan sleep
 # Fetches and displays the man page for the 'sleep' command
 ```
+
+---
